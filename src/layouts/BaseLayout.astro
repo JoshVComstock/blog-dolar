@@ -1,0 +1,59 @@
+---
+import SeoHead from '../components/SeoHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/ledger.css';
+
+const {
+  title,
+  description,
+  canonical,
+  activeCountry = null,
+  jsonLd = [],
+  modifiedTime
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem('cc-theme');
+          var dark = stored
+            ? stored === 'dark'
+            : window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.classList.toggle('dark', dark);
+          document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+        } catch (error) {
+          void error;
+        }
+      })();
+    </script>
+    <SeoHead
+      title={title}
+      description={description}
+      canonical={canonical}
+      jsonLd={jsonLd}
+      modifiedTime={modifiedTime}
+    />
+  </head>
+  <body class="min-h-screen">
+    <a
+      href="#contenido"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:px-4 focus:py-2 focus:text-[0.875rem] focus:font-semibold"
+      style="background-color: var(--cover); color: var(--cover-ink)"
+    >
+      Ir al contenido
+    </a>
+
+    <Header active={activeCountry} />
+
+    <main id="contenido">
+      <slot />
+    </main>
+
+    <Footer />
+  </body>
+</html>

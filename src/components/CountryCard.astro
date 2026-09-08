@@ -1,0 +1,95 @@
+---
+import Movement from './Movement.astro';
+import Icon from './Icon.astro';
+import { formatFigure } from '../utils/format.js';
+
+const { board, index = 0 } = Astro.props;
+const { country, primary, rates, spread, available } = board;
+const locale = country.locale;
+const decimals = country.decimals;
+
+const official = rates.find((rate) => rate.key === 'oficial');
+const showsPair = Boolean(country.hasParallel && official && primary && official.key !== primary.key);
+---
+
+<a
+  href={`/${country.code}/dolar-hoy`}
+  style={`--row:${index}`}
+  class="group relative block px-4 py-5 no-underline transition-colors duration-200 hover:bg-[var(--paper-band)] focus-visible:bg-[var(--paper-band)] sm:px-6"
+>
+  <div class="flex flex-wrap items-center gap-x-6 gap-y-4 sm:flex-nowrap">
+    <div class="min-w-[8.5rem] flex-1 sm:flex-none">
+      <h3 class="text-[1.0625rem] font-bold leading-tight" style="color: var(--ink)">
+        {country.name}
+      </h3>
+      <p class="mt-1 text-[0.8125rem]" style="color: var(--ink-faint)">
+        {country.currencyName}
+      </p>
+    </div>
+
+    {
+      available ? (
+        <div class="flex flex-1 flex-wrap items-end gap-x-8 gap-y-4">
+          <div>
+            <p class="mb-2">
+              <span class="label invert-mark">{primary.label}</span>
+            </p>
+            <p class="figure-row" style="color: var(--ink)">
+              <span class="mr-1 text-[0.6em] font-medium" style="color: var(--ink-faint)">
+                {country.symbol}
+              </span>
+              {formatFigure(primary.sell, locale, decimals)}
+            </p>
+          </div>
+
+          {showsPair && (
+            <div>
+              <p class="mb-2 label" style="color: var(--ink-faint)">
+                {official.label}
+              </p>
+              <p class="figure-row" style="color: var(--ink-soft)">
+                <span class="mr-1 text-[0.6em] font-medium" style="color: var(--ink-faint)">
+                  {country.symbol}
+                </span>
+                {formatFigure(official.sell, locale, decimals)}
+              </p>
+            </div>
+          )}
+
+          <div class="flex items-center gap-3">
+            <Movement
+              change={primary.change}
+              changePct={primary.changePct}
+              locale={locale}
+              decimals={decimals}
+              size="sm"
+            />
+            {spread && (
+              <span class="label whitespace-nowrap" style="color: var(--ink-faint)">
+                {`Brecha ${spread.value > 0 ? '+' : ''}${spread.value.toFixed(1).replace('.', ',')} %`}
+              </span>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div class="flex-1">
+          <p class="figure-row" style="color: var(--ink-faint)">
+            <span aria-hidden="true">— —</span>
+            <span class="sr-only">Cotización no disponible</span>
+          </p>
+          <p class="mt-1.5 label" style="color: var(--ink-faint)">
+            La fuente no respondió
+          </p>
+        </div>
+      )
+    }
+
+    <span
+      class="ml-auto inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-transform duration-300 ease-settle group-hover:translate-x-1"
+      style="background-color: var(--paper-band); color: var(--ink-soft)"
+      aria-hidden="true"
+    >
+      <Icon name="chevron" size={15} />
+    </span>
+  </div>
+</a>

@@ -1,0 +1,285 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-06T00:00:00.000Z",
+  "title": "Design System: Cambio Claro",
+  "extensions": {
+    "colorMeta": {
+      "cover": {
+        "role": "primary",
+        "displayName": "Passbook Green",
+        "canonical": "#1e4d3b",
+        "darkPeer": "#1b4636",
+        "tonalRamp": ["#0a1a14", "#0f2820", "#163a2c", "#1e4d3b", "#2c6e54", "#4f9b7c", "#8fc4ae", "#d3e8dd"]
+      },
+      "cover-deep": {
+        "role": "primary",
+        "displayName": "Passbook Green Deep",
+        "canonical": "#163a2c",
+        "darkPeer": "#123024",
+        "tonalRamp": ["#081410", "#0d2119", "#123024", "#163a2c", "#215440", "#3d8266", "#7bb69c", "#c9e2d6"]
+      },
+      "cover-ink": {
+        "role": "primary",
+        "displayName": "Cover Ink",
+        "canonical": "#f2ead6",
+        "darkPeer": "#e8dfc8",
+        "tonalRamp": ["#2b2618", "#443d29", "#6b6142", "#948a64", "#bdb28c", "#d8ceac", "#f2ead6", "#fbf7ea"]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Manila Ground",
+        "canonical": "#f7f1e1",
+        "darkPeer": "#191712",
+        "tonalRamp": ["#191712", "#2a2620", "#453f31", "#6b6250", "#968b73", "#c3b9a0", "#f7f1e1", "#fffaf0"]
+      },
+      "paper-leaf": {
+        "role": "neutral",
+        "displayName": "Manila Leaf",
+        "canonical": "#fffaf0",
+        "darkPeer": "#211e17",
+        "tonalRamp": ["#211e17", "#332e23", "#4f4835", "#7a7053", "#a89c77", "#d2c7a6", "#efe6cf", "#fffaf0"]
+      },
+      "paper-band": {
+        "role": "neutral",
+        "displayName": "Manila Band",
+        "canonical": "#efe6cf",
+        "darkPeer": "#2a2620",
+        "tonalRamp": ["#1c1913", "#2a2620", "#443d2d", "#6d634a", "#9a8e6d", "#c6b995", "#efe6cf", "#f9f3e5"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ledger Ink",
+        "canonical": "#221d14",
+        "darkPeer": "#f2ead6",
+        "tonalRamp": ["#100e09", "#221d14", "#3a3223", "#564b34", "#7a6d4f", "#a89a77", "#d3c7a8", "#f2ead6"]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Soft Ink",
+        "canonical": "#4e4536",
+        "darkPeer": "#c9bfa6",
+        "tonalRamp": ["#17140f", "#2c261d", "#4e4536", "#6b604b", "#8d8064", "#b0a284", "#cfc3aa", "#eae1cd"]
+      },
+      "ink-faint": {
+        "role": "neutral",
+        "displayName": "Faint Ink",
+        "canonical": "#6e6553",
+        "darkPeer": "#948b75",
+        "tonalRamp": ["#1d1a15", "#332e26", "#4f483a", "#6e6553", "#8d836c", "#ada38a", "#ccc3ad", "#e9e2d2"]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "rgba(30, 77, 59, 0.2)",
+        "darkPeer": "rgba(242, 234, 214, 0.16)"
+      },
+      "rule-strong": {
+        "role": "neutral",
+        "displayName": "Hairline Strong",
+        "canonical": "rgba(30, 77, 59, 0.4)",
+        "darkPeer": "rgba(242, 234, 214, 0.32)"
+      },
+      "deposit": {
+        "role": "secondary",
+        "displayName": "Deposit Green",
+        "canonical": "#17693f",
+        "darkPeer": "#4fbf83",
+        "tonalRamp": ["#062015", "#0c3a25", "#17693f", "#1e8a53", "#31ab6e", "#4fbf83", "#8ed9b0", "#d0f0de"]
+      },
+      "withdraw": {
+        "role": "tertiary",
+        "displayName": "Withdrawal Red",
+        "canonical": "#a62f22",
+        "darkPeer": "#e8776a",
+        "tonalRamp": ["#2c0c07", "#4d1611", "#7c231a", "#a62f22", "#c94a3a", "#e8776a", "#f2a89e", "#fbdcd7"]
+      },
+      "deposit-wash": {
+        "role": "secondary",
+        "displayName": "Deposit Wash",
+        "canonical": "rgba(23, 105, 63, 0.1)",
+        "darkPeer": "rgba(79, 191, 131, 0.12)"
+      },
+      "withdraw-wash": {
+        "role": "tertiary",
+        "displayName": "Withdrawal Wash",
+        "canonical": "rgba(166, 47, 34, 0.09)",
+        "darkPeer": "rgba(232, 119, 106, 0.12)"
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Page-opening headline on the index and text pages. Capped near 16ch." },
+      "balance": { "displayName": "Balance Figure", "purpose": "The single hero price when a country has one headline quotation. One per page." },
+      "pair": { "displayName": "Pair Figure", "purpose": "Two hero prices side by side (oficial next to paralelo). Exists because the balance step overflows at two." },
+      "headline": { "displayName": "Headline", "purpose": "The h1 inside the country hero leaf." },
+      "title": { "displayName": "Title", "purpose": "Section headings inside a leaf and country names on the board." },
+      "body": { "displayName": "Body", "purpose": "Long-form note and legal prose at the 40rem note measure." },
+      "body-small": { "displayName": "Interface Text", "purpose": "Buttons, nav pills, hints and secondary interface copy." },
+      "figure-row": { "displayName": "Row Figure", "purpose": "Per-country price on the index board." },
+      "figure-cell": { "displayName": "Cell Figure", "purpose": "Dense table values: buy side and secondary in-row values." },
+      "label": { "displayName": "Label", "purpose": "Uppercase name for the data beside it. Column headers, quotation names, meta strips." },
+      "label-lg": { "displayName": "Label Large", "purpose": "The same uppercase voice one step up." },
+      "stamp": { "displayName": "Stamp", "purpose": "Measurement times and the date-stamp chip. Mono is what makes it read as machine-printed." }
+    },
+    "shadows": [
+      { "name": "leaf-light", "value": "0 1px 2px rgba(34, 29, 20, 0.05), 0 10px 26px -12px rgba(34, 29, 20, 0.22)", "purpose": "The only elevation in the light edition. Applied by .leaf to say 'this is a separate sheet of paper'." },
+      { "name": "leaf-dark", "value": "0 1px 2px rgba(0, 0, 0, 0.4), 0 14px 34px -16px rgba(0, 0, 0, 0.7)", "purpose": "The same role re-authored for dark card, where a manila-tuned shadow disappears." }
+    ],
+    "motion": [
+      { "name": "ease-settle", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "The single easing for every animation and transition in the system." },
+      { "name": "settle", "value": "settle 0.42s cubic-bezier(0.16, 1, 0.3, 1) backwards", "purpose": "Row entrance from opacity 0 / translateY(0.5rem), delayed by calc(var(--row) * 40ms) via the .stagger parent." },
+      { "name": "stagger-step", "value": "40ms", "purpose": "Per-row delay increment in a staggered list or table body." },
+      { "name": "ink", "value": "ink 0.34s cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Stamp replay on a changed figure: drops from -0.18em at 25% opacity, overshoots to 1.004 scale, settles. Replayed by React key change, never by an effect." },
+      { "name": "state", "value": "200ms", "purpose": "Color transition duration for hover, active and toggle states." },
+      { "name": "reduced-motion", "value": "animation: none; transition-duration: 0.01ms", "purpose": "Both animations are killed outright under prefers-reduced-motion: reduce." }
+    ],
+    "breakpoints": [
+      { "name": "xs", "value": "400px" },
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ],
+    "containers": [
+      { "name": "shell", "value": "80rem", "purpose": "Page shell max width." },
+      { "name": "note", "value": "40rem", "purpose": "Reading measure for prose." },
+      { "name": "stub", "value": "21rem", "purpose": "Sticky right column holding the converter and ad slot." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Leaf",
+      "kind": "card",
+      "refersTo": "leaf",
+      "description": "The signature container and the only elevated surface: a sheet of manila paper resting on the ground.",
+      "html": "<section class=\"ds-leaf\"><div class=\"ds-leaf-band\">LA PAZ · BOB</div><div class=\"ds-leaf-body\"><h2 class=\"ds-leaf-title\">Todas las cotizaciones</h2><p class=\"ds-leaf-copy\">Compra es lo que una casa de cambio te paga por tu dólar.</p></div></section>",
+      "css": ".ds-leaf { background-color: var(--paper-leaf, #fffaf0); color: var(--ink, #221d14); border: 1px solid var(--rule, rgba(30,77,59,0.2)); border-radius: 16px; box-shadow: var(--leaf-shadow, 0 1px 2px rgba(34,29,20,0.05), 0 10px 26px -12px rgba(34,29,20,0.22)); overflow: hidden; font-family: 'Familjen Grotesk Variable', 'Familjen Grotesk', system-ui, sans-serif; max-width: 26rem; } .ds-leaf-band { background-color: var(--paper-band, #efe6cf); color: var(--ink-faint, #6e6553); font-size: 0.6875rem; font-weight: 600; line-height: 1; letter-spacing: 0.1em; text-transform: uppercase; padding: 10px 16px; } .ds-leaf-body { padding: 20px 16px 24px; } .ds-leaf-title { font-size: 1.0625rem; font-weight: 700; line-height: 1.2; letter-spacing: -0.022em; margin: 0; color: var(--ink, #221d14); } .ds-leaf-copy { margin: 12px 0 0; font-size: 0.875rem; line-height: 1.6; color: var(--ink-faint, #6e6553); }"
+    },
+    {
+      "name": "Movement Chip",
+      "kind": "chip",
+      "refersTo": "movement-up",
+      "description": "The smallest and most load-bearing component: direction stated by arrow, signed percentage, color and a screen-reader phrase together.",
+      "html": "<span class=\"ds-move ds-move-up\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 16 16\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M8 3.4 13 9H9.2v4.6H6.8V9H3z\"/></svg><span>+1,4 %</span></span> <span class=\"ds-move ds-move-down\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 16 16\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M8 13.6 3 8h3.8V3.4h2.4V8H13z\"/></svg><span>-0,6 %</span></span> <span class=\"ds-move ds-move-flat\"><span aria-hidden=\"true\">=</span><span>0,0 %</span></span>",
+      "css": ".ds-move { display: inline-flex; align-items: center; gap: 4px; border-radius: 6px; padding: 4px 6px; font-family: 'Azeret Mono Variable', 'Azeret Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; font-weight: 600; font-size: 0.75rem; line-height: 1; } .ds-move-up { color: var(--deposit, #17693f); background-color: var(--deposit-wash, rgba(23,105,63,0.1)); } .ds-move-down { color: var(--withdraw, #a62f22); background-color: var(--withdraw-wash, rgba(166,47,34,0.09)); } .ds-move-flat { color: var(--ink-faint, #6e6553); background-color: transparent; }"
+    },
+    {
+      "name": "Date Stamp",
+      "kind": "custom",
+      "refersTo": "date-stamp",
+      "description": "A crooked rubber stamp carrying the measurement time. The visual promise that every number is dated.",
+      "html": "<span class=\"ds-stamp\"><span class=\"ds-stamp-dot\" aria-hidden=\"true\"></span><time datetime=\"2026-09-06T14:20:00Z\">6 SEP · 14:20</time></span>",
+      "css": ".ds-stamp { display: inline-flex; align-items: center; gap: 8px; transform: rotate(-1.4deg); border: 1px solid var(--rule-strong, rgba(30,77,59,0.4)); border-radius: 3px; padding: 6px 10px; color: var(--ink-soft, #4e4536); font-family: 'Azeret Mono Variable', 'Azeret Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; font-weight: 500; font-size: 0.6875rem; line-height: 1; letter-spacing: 0.04em; text-transform: uppercase; } .ds-stamp-dot { display: inline-block; width: 6px; height: 6px; border-radius: 9999px; background-color: var(--deposit, #17693f); }"
+    },
+    {
+      "name": "Country Nav Pill",
+      "kind": "nav",
+      "refersTo": "nav-pill",
+      "description": "The country tab strip on the passbook cover. Active state is a full inversion driven by aria-current.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Países\"><a class=\"ds-nav-pill\" href=\"#\">Bolivia</a><a class=\"ds-nav-pill\" href=\"#\" aria-current=\"page\">Argentina</a><a class=\"ds-nav-pill\" href=\"#\">Venezuela</a></nav>",
+      "css": ".ds-nav { display: flex; gap: 4px; background-color: var(--cover, #1e4d3b); padding: 8px 16px; } .ds-nav-pill { display: block; border-radius: 8px; padding: 6px 12px; font-family: 'Familjen Grotesk Variable', 'Familjen Grotesk', system-ui, sans-serif; font-size: 0.8125rem; font-weight: 600; text-decoration: none; color: var(--cover-ink, #f2ead6); opacity: 0.78; transition: background-color 200ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-nav-pill:hover { background-color: rgba(255,255,255,0.1); opacity: 1; } .ds-nav-pill:focus-visible { outline: 2px solid var(--cover-ink, #f2ead6); outline-offset: 3px; border-radius: 4px; } .ds-nav-pill[aria-current=\"page\"] { background-color: var(--cover-ink, #f2ead6); color: var(--cover, #1e4d3b); opacity: 1; }"
+    },
+    {
+      "name": "Amount Well",
+      "kind": "input",
+      "refersTo": "input-amount",
+      "description": "The converter's amount field. The well is the affordance; the input itself is borderless.",
+      "html": "<label class=\"ds-field-label\" for=\"ds-amount\">Monto en USD</label><div class=\"ds-field\"><span class=\"ds-field-prefix\">US$</span><input id=\"ds-amount\" class=\"ds-field-input\" value=\"100\" inputmode=\"decimal\" autocomplete=\"off\" placeholder=\"100\" /></div>",
+      "css": ".ds-field-label { display: block; margin-bottom: 8px; font-family: 'Familjen Grotesk Variable', 'Familjen Grotesk', system-ui, sans-serif; font-size: 0.6875rem; font-weight: 600; line-height: 1; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint, #6e6553); } .ds-field { display: flex; align-items: center; gap: 8px; border: 1px solid var(--rule-strong, rgba(30,77,59,0.4)); border-radius: 12px; padding: 10px 12px; background-color: var(--paper, #f7f1e1); max-width: 20rem; } .ds-field-prefix { font-family: 'Azeret Mono Variable', 'Azeret Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; font-size: 1.125rem; font-weight: 600; color: var(--ink-faint, #6e6553); } .ds-field-input { width: 100%; min-width: 0; border: 0; background: transparent; outline: none; caret-color: var(--cover, #1e4d3b); color: var(--ink, #221d14); font-family: 'Azeret Mono Variable', 'Azeret Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; font-size: 1.75rem; font-weight: 700; line-height: 1.2; letter-spacing: -0.03em; } .ds-field-input::placeholder { color: var(--ink-faint, #6e6553); } .ds-field-input:focus-visible { outline: 2px solid var(--cover, #1e4d3b); outline-offset: 3px; border-radius: 4px; }"
+    },
+    {
+      "name": "Segmented Toggle",
+      "kind": "button",
+      "refersTo": "toggle-segment-active",
+      "description": "Two-cell mode switch in the converter. The active cell fills cover green; state is announced with aria-pressed.",
+      "html": "<div class=\"ds-seg\" role=\"group\" aria-label=\"Qué moneda tienes\"><button type=\"button\" class=\"ds-seg-cell ds-seg-on\" aria-pressed=\"true\">Tengo dólares</button><button type=\"button\" class=\"ds-seg-cell\" aria-pressed=\"false\">Tengo ARS</button></div>",
+      "css": ".ds-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; border-radius: 12px; padding: 4px; background-color: var(--paper-band, #efe6cf); max-width: 20rem; } .ds-seg-cell { border: 0; cursor: pointer; border-radius: 8px; padding: 8px; background-color: transparent; color: var(--ink-soft, #4e4536); font-family: 'Familjen Grotesk Variable', 'Familjen Grotesk', system-ui, sans-serif; font-size: 0.8125rem; font-weight: 600; transition: background-color 200ms cubic-bezier(0.16, 1, 0.3, 1), color 200ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-seg-cell:hover { background-color: rgba(30,77,59,0.06); } .ds-seg-cell:focus-visible { outline: 2px solid var(--cover, #1e4d3b); outline-offset: 3px; } .ds-seg-on { background-color: var(--cover, #1e4d3b); color: var(--cover-ink, #f2ead6); } .ds-seg-on:hover { background-color: var(--cover-deep, #163a2c); }"
+    },
+    {
+      "name": "Quick Amount Chip",
+      "kind": "chip",
+      "refersTo": "quick-amount",
+      "description": "Preset amounts under the converter well. Mono numerals on a pressed band tint.",
+      "html": "<div class=\"ds-quick\"><button type=\"button\" class=\"ds-quick-chip\">50</button><button type=\"button\" class=\"ds-quick-chip\">100</button><button type=\"button\" class=\"ds-quick-chip\">500</button><button type=\"button\" class=\"ds-quick-chip\">1000</button></div>",
+      "css": ".ds-quick { display: flex; flex-wrap: wrap; gap: 8px; } .ds-quick-chip { border: 0; cursor: pointer; border-radius: 8px; padding: 6px 10px; background-color: var(--paper-band, #efe6cf); color: var(--ink-soft, #4e4536); font-family: 'Azeret Mono Variable', 'Azeret Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; font-size: 0.8125rem; font-weight: 600; transition: opacity 200ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-quick-chip:hover { opacity: 0.8; } .ds-quick-chip:focus-visible { outline: 2px solid var(--cover, #1e4d3b); outline-offset: 3px; }"
+    },
+    {
+      "name": "Lead Result Panel",
+      "kind": "custom",
+      "refersTo": "movement-up",
+      "description": "The converter's headline answer: a deposit-wash panel with a labelled 2rem mono figure that replays the ink stamp when the value changes.",
+      "html": "<div class=\"ds-lead\"><p class=\"ds-lead-label\">Blue · indicativa</p><p class=\"ds-lead-figure\"><span class=\"ds-lead-sym\">$</span>147.500,00</p><p class=\"ds-lead-rate\">1 USD = 1.475,00 ARS · compra</p></div>",
+      "css": ".ds-lead { border-radius: 12px; padding: 16px; background-color: var(--deposit-wash, rgba(23,105,63,0.1)); max-width: 20rem; font-family: 'Familjen Grotesk Variable', 'Familjen Grotesk', system-ui, sans-serif; } .ds-lead-label { margin: 0; font-size: 0.6875rem; font-weight: 600; line-height: 1; letter-spacing: 0.1em; text-transform: uppercase; color: var(--deposit, #17693f); } .ds-lead-figure { margin: 8px 0 0; font-family: 'Azeret Mono Variable', 'Azeret Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; font-size: 2rem; font-weight: 700; line-height: 1; letter-spacing: -0.035em; color: var(--ink, #221d14); animation: ds-ink 0.34s cubic-bezier(0.16, 1, 0.3, 1); } .ds-lead-sym { margin-right: 6px; font-size: 0.5em; font-weight: 600; color: var(--ink-faint, #6e6553); } .ds-lead-rate { margin: 8px 0 0; font-family: 'Azeret Mono Variable', 'Azeret Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; font-size: 0.8125rem; color: var(--ink-faint, #6e6553); } @keyframes ds-ink { 0% { opacity: 0.25; transform: translateY(-0.18em) scale(0.985); } 55% { opacity: 1; transform: translateY(0.02em) scale(1.004); } 100% { opacity: 1; transform: translateY(0) scale(1); } } @media (prefers-reduced-motion: reduce) { .ds-lead-figure { animation: none; } }"
+    },
+    {
+      "name": "Board Row",
+      "kind": "custom",
+      "refersTo": "leaf",
+      "description": "One country on the index board: name, labelled row figure, movement chip, and a round chevron affordance that slides on hover.",
+      "html": "<a class=\"ds-row\" href=\"#\"><span class=\"ds-row-country\"><span class=\"ds-row-name\">Argentina</span><span class=\"ds-row-curr\">Peso argentino</span></span><span class=\"ds-row-fig\"><span class=\"ds-row-label\">Blue</span><span class=\"ds-row-value\"><span class=\"ds-row-sym\">$</span>1.475,00</span></span><span class=\"ds-row-go\" aria-hidden=\"true\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9.5 5.5 16 12l-6.5 6.5\"/></svg></span></a>",
+      "css": ".ds-row { display: flex; align-items: center; gap: 24px; padding: 20px 16px; text-decoration: none; background-color: var(--paper-leaf, #fffaf0); font-family: 'Familjen Grotesk Variable', 'Familjen Grotesk', system-ui, sans-serif; transition: background-color 200ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-row:hover, .ds-row:focus-visible { background-color: var(--paper-band, #efe6cf); } .ds-row-country { display: block; min-width: 8.5rem; } .ds-row-name { display: block; font-size: 1.0625rem; font-weight: 700; line-height: 1.15; color: var(--ink, #221d14); } .ds-row-curr { display: block; margin-top: 4px; font-size: 0.8125rem; color: var(--ink-faint, #6e6553); } .ds-row-label { display: block; margin-bottom: 6px; font-size: 0.6875rem; font-weight: 600; line-height: 1; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint, #6e6553); } .ds-row-value { display: block; font-family: 'Azeret Mono Variable', 'Azeret Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; font-size: 1.625rem; font-weight: 600; line-height: 1.05; letter-spacing: -0.03em; color: var(--ink, #221d14); } .ds-row-sym { margin-right: 4px; font-size: 0.6em; font-weight: 500; color: var(--ink-faint, #6e6553); } .ds-row-go { margin-left: auto; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; flex-shrink: 0; border-radius: 9999px; background-color: var(--paper-band, #efe6cf); color: var(--ink-soft, #4e4536); transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-row:hover .ds-row-go { transform: translateX(4px); }"
+    },
+    {
+      "name": "Ledger Header Band",
+      "kind": "custom",
+      "refersTo": "band",
+      "description": "The pressed strip that opens a table or a hero inside a leaf. Uppercase labels in faint ink, no border of its own.",
+      "html": "<div class=\"ds-band\"><span>Cotización</span><span>Venta</span></div>",
+      "css": ".ds-band { display: flex; align-items: center; justify-content: space-between; gap: 16px; background-color: var(--paper-band, #efe6cf); color: var(--ink-faint, #6e6553); padding: 10px 16px; font-family: 'Familjen Grotesk Variable', 'Familjen Grotesk', system-ui, sans-serif; font-size: 0.6875rem; font-weight: 600; line-height: 1; letter-spacing: 0.1em; text-transform: uppercase; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Savings Passbook",
+    "overview": "Cambio Claro is a Latin American savings passbook rendered for the browser. The chrome is the booklet's cover — deep passbook green, unbroken, carrying the mark, the country tabs and the footer. Everything you read sits on a page torn from inside that booklet: warm manila paper, a hairline rule, a soft shadow where the leaf lifts off the ground. Figures are printed in a monospaced face with tabular digits so a column of prices lines up the way it would in a teller's ledger; prose and labels are set in a grotesk that stays quiet underneath them. Nothing here pretends to be a trading terminal. It is a record book: a number, the name of the number, and the hour it was measured.\n\nThe system is dense but never crowded. Rows are separated by a single hairline, not by gaps; sections are separated by whitespace, not by boxes inside boxes. Depth is real but shallow — one radius (16px), one hairline border, one two-part shadow, applied to exactly one container. Every accent the palette owns is a ledger word: green is a deposit, red is a withdrawal, and both are always accompanied by an arrow and a signed percentage so the meaning survives without color.\n\nLight and dark are peer editions of the same booklet, not an inversion of each other. Each defines its own paper, its own cover green, its own deposit and withdrawal hues; the dark edition is a passbook printed on dark card, and it is read with the same eyes.",
+    "keyCharacteristics": [
+      "Deep passbook green owns all chrome; warm manila paper owns all reading.",
+      "One container, the `leaf`: 16px radius, one hairline, one soft two-part shadow.",
+      "Two families with split duties — grotesk for language, mono for every figure.",
+      "Four figure steps, never a fifth invented one.",
+      "Direction is never color alone: arrow glyph plus signed percentage, always.",
+      "Motion is a single easing carrying a 40ms-per-row settle and an ink stamp."
+    ],
+    "rules": [
+      { "name": "The Cover-and-Page Rule", "body": "Green is structure; paper is content. Chrome, tabs, the converter head and the footer are green; anything you read a number or a sentence on is paper. A green panel in the middle of the reading column is out of system.", "section": "colors" },
+      { "name": "The Two Editions Rule", "body": "Light and dark are peer editions, never an inversion. Every new color must be authored twice, once on :root and once on html.dark, as its own value. Never derive a dark value by filtering, inverting, or reusing the light one.", "section": "colors" },
+      { "name": "The Ledger Language Rule", "body": "Deposit green and withdrawal red mean 'up' and 'down' in a passbook sense, and they never carry that meaning alone. A movement is always an arrow glyph plus a signed percentage plus the color, with a screen-reader phrase behind it; a flat movement is an = in faint ink with no wash. This is an accessibility commitment, not a stylistic preference.", "section": "colors" },
+      { "name": "The Tabular Figures Rule", "body": "Every number a reader might compare is set in Azeret Mono with tabular-nums. No figure is ever set in the grotesk, and no sentence is ever set in the mono. A currency symbol beside a figure is sized at 0.34em–0.7em of that figure and set in faint ink so the digits stay dominant.", "section": "typography" },
+      { "name": "The Four Steps Rule", "body": "There are exactly four figure steps — balance, pair, row, cell — and a new surface picks one of them. Do not author a fifth size; if a figure does not fit, step down, do not interpolate.", "section": "typography" },
+      { "name": "The Named Number Rule", "body": "No figure appears without a label above it naming which quotation it is, and no measured figure appears without a stamp saying when it was read.", "section": "typography" },
+      { "name": "The One Grid Rule", "body": "A page is the shell, one grid, and leaves inside it. Do not nest a second multi-column grid inside a leaf; step down to a flex row that wraps.", "section": "layout" },
+      { "name": "The Source-Order Rule", "body": "Mobile reading order is the source order. When desktop needs a different arrangement, move it with grid placement, never by duplicating or reordering markup.", "section": "layout" },
+      { "name": "The One Shadow Rule", "body": "There is one shadow token and it belongs to the leaf. Anything that needs separation without lift uses leaf-flat (same fill, same hairline, same radius, no shadow) or a band tint. Never introduce a second elevation step or a hover lift.", "section": "elevation" },
+      { "name": "The Radius Ladder Rule", "body": "Radius descends with scale: sheet 16px, well 12px, control 8px, chip 6px, ring 4px, stamp 3px. A control never carries a radius larger than the surface containing it.", "section": "shapes" },
+      { "name": "The Single Easing Rule", "body": "Every animation and transition in this system uses cubic-bezier(0.16, 1, 0.3, 1). Do not introduce a second curve, a bounce, or a spring.", "section": "components" },
+      { "name": "The Replay-By-Key Rule", "body": "A figure animates because its value changed, and the change is expressed by keying the element to its formatted text. Never drive an animation from an effect or a timer.", "section": "components" }
+    ],
+    "dos": [
+      "Do put every reusable class in src/styles/ledger.css under @layer components and every palette value on :root and html.dark. New surfaces compose existing classes before they invent CSS.",
+      "Do reach for tokens through var(--token) in inline style attributes when Tailwind has no utility for them; that is the established pattern throughout the build.",
+      "Do wrap every readable region in a leaf (or leaf-flat) and divide its contents with hairlines rather than gaps or nested cards.",
+      "Do pair every figure with a label naming the quotation and a stamp naming the measurement time.",
+      "Do author every new color twice — light and dark — as independent values.",
+      "Do state direction with an arrow glyph, a signed percentage, a color, and a screen-reader phrase, all four together.",
+      "Do say when data is missing in plain Spanish ('sin dato de ayer', 'La fuente no respondió') instead of rendering a zero or an empty cell.",
+      "Do cap running prose at max-w-note (40rem) and page shells at max-w-shell (80rem).",
+      "Do keep the sticky 21rem stub earlier in the DOM than the rest of the content, and position it with grid placement.",
+      "Do let wide tables scroll horizontally inside overflow-x-auto with a min-w floor.",
+      "Do disable both animations under prefers-reduced-motion."
+    ],
+    "donts": [
+      "Don't write code comments anywhere in src/, scripts/, or the config files. This codebase carries zero comments by contract; name things so they do not need one.",
+      "Don't ship a second client component. Everything is static Astro except the single client:load converter island.",
+      "Don't use useEffect. Derive with useMemo, replay animation with a key, and read theme from the inline head script.",
+      "Don't use color as the only signal for a rise or a fall.",
+      "Don't treat dark mode as an inversion of light, or derive one theme's values from the other's.",
+      "Don't set a figure in the grotesk or a sentence in the mono, and don't ship a figure without tabular-nums.",
+      "Don't invent a fifth figure step; step down through balance → pair → row → cell.",
+      "Don't add a second shadow, an elevation scale, or a hover lift. Use leaf-flat or a band tint.",
+      "Don't put a cover-green panel inside the reading column; green is chrome, paper is content.",
+      "Don't use red for form validation — red is withdrawal. Errors are plain-language hints in faint ink plus aria-invalid.",
+      "Don't nest a leaf inside a leaf, or a multi-column grid inside a leaf.",
+      "Don't add a decorative kicker or eyebrow above a heading. The uppercase label exists to name the data beside it, not to decorate a title.",
+      "Don't use emoji, icon fonts, or glyph characters as icons; icons are inline 24px-grid SVG paths using currentColor.",
+      "Don't remove or restyle the :focus-visible ring, and don't rely on :focus without it."
+    ]
+  }
+}

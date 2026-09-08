@@ -1,0 +1,72 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSensePlaceholder from '../../components/AdSensePlaceholder.astro';
+import { formatLongDay } from '../../utils/format.js';
+import { getCollection } from 'astro:content';
+
+const notes = (await getCollection('notas')).sort((a, b) => (a.data.fecha < b.data.fecha ? 1 : -1));
+
+const title = 'Notas sobre el dólar en Latinoamérica | Cambio Claro';
+const description =
+  'Explicaciones sin tecnicismos sobre tipos de cambio, brecha cambiaria, remesas y cómo leer una cotización antes de operar.';
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Blog',
+    name: 'Notas de Cambio Claro',
+    url: 'https://cambioclaro.com/notas',
+    inLanguage: 'es',
+    description,
+    blogPost: notes.map((note) => ({
+      '@type': 'BlogPosting',
+      headline: note.data.titulo,
+      description: note.data.resumen,
+      datePublished: note.data.fecha,
+      url: `https://cambioclaro.com/notas/${note.id}`
+    }))
+  }
+];
+---
+
+<BaseLayout title={title} description={description} canonical="/notas" jsonLd={jsonLd}>
+  <div class="mx-auto max-w-shell px-4 py-10 sm:px-6 lg:px-8 md:py-14">
+    <h1 class="max-w-[18ch] text-[clamp(2rem,5vw,3rem)] font-bold leading-[1.05]" style="color: var(--ink)">
+      Notas
+    </h1>
+    <p class="mt-4 max-w-note text-[1.0625rem] leading-relaxed" style="color: var(--ink-soft)">
+      Cómo funciona el dinero en la región, explicado para quien tiene que tomar una decisión hoy y
+      no estudió economía.
+    </p>
+
+    <div class="mt-10 grid gap-6 md:grid-cols-2">
+      {
+        notes.map((note) => (
+          <a
+            href={`/notas/${note.id}`}
+            class="leaf group flex flex-col justify-between gap-6 px-5 py-6 no-underline transition-transform duration-300 ease-settle hover:-translate-y-0.5"
+          >
+            <div>
+              <p class="label" style="color: var(--deposit)">
+                {formatLongDay(note.data.fecha)} · {note.data.lectura} min
+              </p>
+              <h2 class="mt-3 text-[1.25rem] font-bold leading-tight" style="color: var(--ink)">
+                {note.data.titulo}
+              </h2>
+              <p class="mt-2.5 text-[0.9375rem] leading-relaxed" style="color: var(--ink-soft)">
+                {note.data.resumen}
+              </p>
+            </div>
+            <span class="label" style="color: var(--ink-faint)">
+              Leer la nota
+            </span>
+          </a>
+        ))
+      }
+    </div>
+
+    <div class="mt-14">
+      <AdSensePlaceholder slot="horizontal" />
+    </div>
+  </div>
+</BaseLayout>

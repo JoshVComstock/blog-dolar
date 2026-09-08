@@ -1,0 +1,165 @@
+---
+import Movement from './Movement.astro';
+import { formatFigure, formatStamp } from '../utils/format.js';
+
+const { rates = [], country, primaryKey } = Astro.props;
+const locale = country.locale;
+const decimals = country.decimals;
+const hasTrend = rates.some((rate) => Number.isFinite(rate.change));
+const seed = 100;
+---
+
+<section aria-labelledby="cotizaciones" class="leaf-flat overflow-hidden">
+  <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 px-4 pt-5 sm:px-6">
+    <h2 id="cotizaciones" class="text-[1.0625rem] font-bold" style="color: var(--ink)">
+      El libro de {country.name}
+    </h2>
+    <p class="label" style="color: var(--ink-faint)">
+      {rates.length} {rates.length === 1 ? 'renglón' : 'renglones'}
+    </p>
+  </div>
+
+  <div class="scroll-fade mt-4 overflow-x-auto">
+    <table
+      class="ruled-paper w-full min-w-[30rem] border-collapse text-left"
+      style="--rule-step: 3.75rem; --rule-offset: 2.6rem"
+      data-ledger
+      data-decimals={decimals}
+      data-locale={locale}
+      data-symbol={country.symbol}
+    >
+      <caption class="sr-only">
+        Cotizaciones del dólar en {country.name} con compra, venta, variación, hora de medición y el
+        equivalente de tu monto.
+      </caption>
+      <thead>
+        <tr class="band">
+          <th scope="col" class="px-4 py-2.5 label font-semibold sm:px-6" style="color: var(--ink-faint)">
+            Cotización
+          </th>
+          <th scope="col" class="px-3 py-2.5 text-right label font-semibold" style="color: var(--ink-faint)">
+            Compra
+          </th>
+          <th scope="col" class="px-3 py-2.5 text-right label font-semibold" style="color: var(--ink-faint)">
+            Venta
+          </th>
+          {hasTrend && (
+            <th scope="col" class="px-3 py-2.5 text-right label font-semibold" style="color: var(--ink-faint)">
+              Variación
+            </th>
+          )}
+          <th scope="col" class="px-3 py-2.5 text-right label font-semibold" style="color: var(--ink-faint)">
+            <span data-ledger-head>Tu monto · 100 USD</span>
+          </th>
+          <th scope="col" class="px-4 py-2.5 text-right label font-semibold sm:px-6" style="color: var(--ink-faint)">
+            Medido
+          </th>
+        </tr>
+      </thead>
+      <tbody class="stagger">
+        {
+          rates.map((rate, index) => (
+            <tr
+              class={`border-t ${rate.key === primaryKey ? 'row-invert' : ''}`}
+              style={`--row:${index}; border-color: var(--rule)`}
+            >
+              <th scope="row" class="px-4 py-4 align-middle font-normal sm:px-6">
+                <span class="block text-[0.9375rem] font-bold" style="color: var(--ink)">
+                  {rate.label}
+                </span>
+                {rate.indicative && (
+                  <span class="mt-1 block label" style="color: var(--ink-faint)">
+                    Indicativa
+                  </span>
+                )}
+              </th>
+              <td class="px-3 py-4 text-right align-middle figure-cell" style="color: var(--ink-soft)">
+                {formatFigure(rate.buy, locale, decimals)}
+              </td>
+              <td class="px-3 py-4 text-right align-middle">
+                <span class="figure text-[1.0625rem] font-bold tracking-[-0.03em]" style="color: var(--ink)">
+                  {formatFigure(rate.sell, locale, decimals)}
+                </span>
+              </td>
+              {hasTrend && (
+                <td class="px-3 py-4 text-right align-middle">
+                  <Movement
+                    change={rate.change}
+                    changePct={rate.changePct}
+                    locale={locale}
+                    decimals={decimals}
+                    size="sm"
+                  />
+                </td>
+              )}
+              <td
+                class="px-3 py-4 text-right align-middle figure-cell font-bold"
+                style="color: var(--ink)"
+                data-ledger-cell
+                data-buy={rate.buy ?? ''}
+                data-sell={rate.sell ?? ''}
+              >
+                {formatFigure(rate.buy ? seed * rate.buy : null, locale, decimals)}
+              </td>
+              <td class="whitespace-nowrap px-4 py-4 pr-12 text-right align-middle stamp sm:px-6 sm:pr-6" style="color: var(--ink-faint)">
+                <time datetime={rate.updatedAt || undefined}>
+                  {formatStamp(rate.updatedAt, country.timezone)}
+                </time>
+              </td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <p class="border-t px-4 py-4 text-[0.875rem] leading-relaxed sm:px-6" style="border-color: var(--rule); color: var(--ink-faint)">
+    <strong style="color: var(--ink-soft)">Compra</strong> es lo que una casa de cambio te paga por tu
+    dólar. <strong style="color: var(--ink-soft)">Venta</strong> es lo que te cobra por dártelo.
+    Escribe un monto en la calculadora y la columna <strong style="color: var(--ink-soft)">Tu monto</strong>
+    se reescribe en todos los renglones a la vez.
+    {!hasTrend && ' Esta fuente no publica el cierre anterior, así que todavía no hay variación diaria que mostrar.'}
+  </p>
+</section>
+
+<script is:inline>
+  (function () {
+    var table = document.querySelector('[data-ledger]');
+    if (!table) return;
+    var head = table.querySelector('[data-ledger-head]');
+    var cells = table.querySelectorAll('[data-ledger-cell]');
+    var decimals = Number(table.getAttribute('data-decimals')) || 2;
+    var locale = table.getAttribute('data-locale') || 'es';
+
+    window.addEventListener('cc:amount', function (event) {
+      var detail = event.detail || {};
+      var amount = Number(detail.amount);
+      if (!isFinite(amount)) return;
+      var holdingUsd = detail.holdingUsd !== false;
+      var digits = holdingUsd ? decimals : 2;
+
+      if (head) {
+        head.textContent =
+          'Tu monto · ' +
+          new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(amount) +
+          ' ' +
+          (holdingUsd ? 'USD' : detail.currency || '');
+      }
+
+      cells.forEach(function (cell) {
+        var buy = Number(cell.getAttribute('data-buy'));
+        var sell = Number(cell.getAttribute('data-sell'));
+        var applied = holdingUsd ? buy || sell : sell || buy;
+        if (!isFinite(applied) || applied === 0) return;
+        var value = holdingUsd ? amount * applied : amount / applied;
+        cell.textContent = new Intl.NumberFormat(locale, {
+          minimumFractionDigits: digits,
+          maximumFractionDigits: digits
+        }).format(value);
+        cell.classList.remove('animate-ink');
+        void cell.offsetWidth;
+        cell.classList.add('animate-ink');
+      });
+    });
+  })();
+</script>

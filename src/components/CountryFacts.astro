@@ -1,0 +1,51 @@
+---
+import { formatCompact } from '../utils/format.js';
+
+const { profile, country } = Astro.props;
+
+const rows = profile
+  ? [
+      { label: 'Capital', value: profile.capital },
+      { label: 'Moneda', value: `${country.currencyName} (${country.currency})` },
+      { label: 'Región', value: profile.region },
+      { label: 'Población', value: formatCompact(profile.population, country.locale) },
+      { label: 'Superficie', value: `${formatCompact(profile.area, country.locale)} km²` },
+      { label: 'Idiomas', value: profile.languages }
+    ].filter((row) => row.value)
+  : [];
+---
+
+{
+  rows.length > 0 && (
+    <section aria-labelledby="ficha" class="rule-strong-top pt-5">
+      <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+        <h2 id="ficha" class="text-[1.0625rem] font-bold" style="color: var(--ink)">
+          {country.name} en datos
+        </h2>
+        <p class="label" style="color: var(--ink-faint)">
+          Fuente {profile.source}
+        </p>
+      </div>
+
+      <dl class="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        {rows.map((row) => (
+          <div class="border-t py-4 pr-6" style="border-color: var(--rule)">
+            <dt class="label" style="color: var(--ink-faint)">
+              {row.label}
+            </dt>
+            <dd class="mt-1.5 text-[1rem] leading-snug" style="color: var(--ink)">
+              {row.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+
+      {!profile.live && (
+        <p class="max-w-note border-t py-4 text-[0.875rem] leading-relaxed" style="border-color: var(--rule); color: var(--ink-faint)">
+          El servicio de datos de países no respondió al compilar, así que estas cifras vienen de la
+          tabla de referencia del proyecto y son aproximadas.
+        </p>
+      )}
+    </section>
+  )
+}

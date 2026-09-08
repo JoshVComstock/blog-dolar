@@ -1,0 +1,42 @@
+---
+import Icon from './Icon.astro';
+
+const { tone = 'cover' } = Astro.props;
+---
+
+<button
+  type="button"
+  id="theme-toggle"
+  class="inline-flex h-9 w-9 items-center justify-center rounded-lg transition-colors duration-200"
+  style={tone === 'cover' ? 'color: var(--cover-ink)' : 'color: var(--ink-soft)'}
+  aria-label="Cambiar entre modo claro y oscuro"
+>
+  <span class="relative block h-[18px] w-[18px]">
+    <span class="absolute inset-0 hidden dark:block"><Icon name="moon" size={18} /></span>
+    <span class="absolute inset-0 block dark:hidden"><Icon name="sun" size={18} /></span>
+  </span>
+</button>
+
+<style>
+  #theme-toggle:hover {
+    background-color: rgba(242, 234, 214, 0.14);
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    var button = document.getElementById('theme-toggle');
+    if (!button) return;
+    button.addEventListener('click', function () {
+      var root = document.documentElement;
+      var next = root.classList.contains('dark') ? 'light' : 'dark';
+      root.classList.toggle('dark', next === 'dark');
+      root.style.colorScheme = next;
+      try {
+        localStorage.setItem('cc-theme', next);
+      } catch (error) {
+        void error;
+      }
+    });
+  })();
+</script>

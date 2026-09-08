@@ -1,0 +1,40 @@
+---
+const { name, size = 16, class: className = '' } = Astro.props;
+
+const paths = {
+  sun: [
+    'M12 4.2V2.4',
+    'M12 21.6v-1.8',
+    'M4.2 12H2.4',
+    'M21.6 12h-1.8',
+    'M6.5 6.5 5.2 5.2',
+    'M18.8 18.8l-1.3-1.3',
+    'M6.5 17.5l-1.3 1.3',
+    'M18.8 5.2l-1.3 1.3'
+  ],
+  moon: ['M20 14.4A8.4 8.4 0 0 1 9.6 4a8.4 8.4 0 1 0 10.4 10.4Z'],
+  swap: ['M6 8h13l-3.2-3.2', 'M18 16H5l3.2 3.2'],
+  chevron: ['M9.5 5.5 16 12l-6.5 6.5'],
+  minus: ['M5 12h14']
+};
+
+const circles = { sun: true };
+const shapes = paths[name] || [];
+---
+
+<svg
+  class={className}
+  width={size}
+  height={size}
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.6"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+  focusable="false"
+>
+  {circles[name] && <circle cx="12" cy="12" r="4.4" />}
+  {shapes.map((d) => <path d={d} />)}
+</svg>

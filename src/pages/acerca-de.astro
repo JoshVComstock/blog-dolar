@@ -1,0 +1,47 @@
+---
+import TextPage from '../layouts/TextPage.astro';
+---
+
+<TextPage
+  title="Acerca de Cambio Claro"
+  description="Qué es Cambio Claro, de dónde saca los datos y con qué criterio los publica."
+  canonical="/acerca-de"
+  heading="Acerca de este sitio"
+  lead="Un tablero del precio del dólar en Latinoamérica, con el nombre de cada cotización y la hora en que fue medida."
+>
+  <h2>Qué hacemos</h2>
+  <p>
+    Publicamos el precio del dólar en ocho países de la región. Donde existe más de un tipo de
+    cambio, los mostramos todos y decimos cuál es cuál. Cada cifra viene con la hora que declara su
+    fuente, porque una cotización sin hora no sirve para decidir nada.
+  </p>
+
+  <h2>De dónde salen los datos</h2>
+  <p>
+    Las cotizaciones del día vienen de <a href="https://dolarapi.com" rel="nofollow noopener">dolarapi.com</a>
+    y, donde esa fuente no llega, de <a href="https://open.er-api.com" rel="nofollow noopener">open.er-api.com</a>.
+    El histórico viene de fuentes públicas de cada país: entidades estadísticas, bancos centrales y
+    portales de datos abiertos. Cada gráfico indica la fuente que usó.
+  </p>
+
+  <h2>Nuestro propio registro</h2>
+  <p>
+    En algunos países no existe ninguna fuente histórica pública. El caso más claro es el dólar
+    paralelo en Bolivia: ninguna institución lo publica, así que nadie tiene su serie. Por eso
+    guardamos nuestra propia lectura cada vez que el sitio se actualiza. Ese registro empieza vacío y
+    crece solo, y con el tiempo se convierte en un histórico que no existe en ningún otro lado.
+  </p>
+
+  <h2>Qué no hacemos</h2>
+  <ul>
+    <li>No damos asesoramiento financiero ni recomendamos comprar o vender nada.</li>
+    <li>No vendemos divisas, no intermediamos operaciones y no tenemos relación con casas de cambio.</li>
+    <li>No inventamos cifras. Si una fuente no responde, la página lo dice en vez de mostrar un dato viejo.</li>
+  </ul>
+
+  <h2>Errores</h2>
+  <p>
+    Si encuentras un dato mal, una cotización mal etiquetada o un texto confuso, escríbenos desde la
+    página de <a href="/contacto">contacto</a>. Corregir rápido es parte del trabajo.
+  </p>
+</TextPage>

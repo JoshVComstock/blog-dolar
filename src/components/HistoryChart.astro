@@ -1,0 +1,134 @@
+---
+import { formatFigure, formatDay } from '../utils/format.js';
+
+const { series, country, title = 'Cómo viene moviéndose' } = Astro.props;
+const points = series && Array.isArray(series.points) ? series.points : [];
+
+const W = 720;
+const H = 210;
+const PAD_X = 8;
+const PAD_TOP = 16;
+const PAD_BOTTOM = 26;
+
+const values = points.map((point) => point.value);
+const min = Math.min(...values);
+const max = Math.max(...values);
+const span = max - min || max * 0.02 || 1;
+const stepX = points.length > 1 ? (W - PAD_X * 2) / (points.length - 1) : 0;
+
+const toX = (index) => PAD_X + index * stepX;
+const toY = (value) => PAD_TOP + (1 - (value - min) / span) * (H - PAD_TOP - PAD_BOTTOM);
+
+const line = points.map((point, index) => `${toX(index).toFixed(1)},${toY(point.value).toFixed(1)}`);
+const linePath = line.length ? 'M' + line.join(' L') : '';
+const areaPath = line.length
+  ? `${linePath} L${toX(points.length - 1).toFixed(1)},${H - PAD_BOTTOM} L${PAD_X},${H - PAD_BOTTOM} Z`
+  : '';
+
+const first = points.length ? points[0] : null;
+const last = points.length ? points[points.length - 1] : null;
+const delta = first && last && first.value ? ((last.value - first.value) / first.value) * 100 : null;
+const rising = delta !== null && delta > 0;
+const tone = delta === null || delta === 0 ? 'var(--ink-faint)' : rising ? 'var(--deposit)' : 'var(--withdraw)';
+const gradientId = `spark-${country.code}`;
+---
+
+{
+  points.length > 1 && (
+    <section aria-labelledby="historico" class="leaf-flat overflow-hidden">
+      <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 px-4 pt-5 sm:px-6">
+        <h2 id="historico" class="text-[1.0625rem] font-bold" style="color: var(--ink)">
+          {title}
+        </h2>
+        <p class="label" style="color: var(--ink-faint)">
+          {series.label} · {points.length} lecturas · {series.source}
+        </p>
+      </div>
+
+      <div class="mt-4 px-2 sm:px-4">
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          class="h-[210px] w-full"
+          role="img"
+          aria-label={`Evolución del dólar en ${country.name} entre ${formatDay(first.date)} y ${formatDay(last.date)}, de ${formatFigure(first.value, country.locale, country.decimals)} a ${formatFigure(last.value, country.locale, country.decimals)} ${country.currency}`}
+        >
+          <defs>
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color={tone} stop-opacity="0.22" />
+              <stop offset="100%" stop-color={tone} stop-opacity="0" />
+            </linearGradient>
+          </defs>
+
+          <line
+            x1={PAD_X}
+            y1={H - PAD_BOTTOM}
+            x2={W - PAD_X}
+            y2={H - PAD_BOTTOM}
+            stroke="var(--rule)"
+            stroke-width="1"
+          />
+          <path d={areaPath} fill={`url(#${gradientId})`} />
+          <path
+            d={linePath}
+            fill="none"
+            stroke={tone}
+            stroke-width="2.25"
+            stroke-linejoin="round"
+            stroke-linecap="round"
+          />
+          <circle cx={toX(points.length - 1)} cy={toY(last.value)} r="4.5" fill={tone} />
+        </svg>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 border-t px-4 py-4 sm:px-6" style="border-color: var(--rule)">
+        <div class="flex flex-wrap gap-x-7 gap-y-3">
+          <span>
+            <span class="block label" style="color: var(--ink-faint)">
+              {formatDay(first.date)}
+            </span>
+            <span class="mt-1 block figure-cell" style="color: var(--ink-soft)">
+              {country.symbol} {formatFigure(first.value, country.locale, country.decimals)}
+            </span>
+          </span>
+          <span>
+            <span class="block label" style="color: var(--ink-faint)">
+              Mínimo
+            </span>
+            <span class="mt-1 block figure-cell" style="color: var(--ink-soft)">
+              {country.symbol} {formatFigure(min, country.locale, country.decimals)}
+            </span>
+          </span>
+          <span>
+            <span class="block label" style="color: var(--ink-faint)">
+              Máximo
+            </span>
+            <span class="mt-1 block figure-cell" style="color: var(--ink-soft)">
+              {country.symbol} {formatFigure(max, country.locale, country.decimals)}
+            </span>
+          </span>
+          <span>
+            <span class="block label" style="color: var(--ink-faint)">
+              {formatDay(last.date)}
+            </span>
+            <span class="mt-1 block figure-cell font-bold" style="color: var(--ink)">
+              {country.symbol} {formatFigure(last.value, country.locale, country.decimals)}
+            </span>
+          </span>
+        </div>
+
+        {delta !== null && (
+          <span class="figure-cell font-bold" style={`color: ${tone}`}>
+            {`${delta > 0 ? '+' : delta < 0 ? '−' : '±'}${Math.abs(delta).toFixed(1).replace('.', ',')} % en el período`}
+          </span>
+        )}
+      </div>
+
+      {series.own && (
+        <p class="border-t px-4 py-4 text-[0.875rem] leading-relaxed sm:px-6" style="border-color: var(--rule); color: var(--ink-faint)">
+          Ninguna institución publica esta serie. La estamos construyendo nosotros: cada vez que el
+          sitio se actualiza guardamos la lectura del día, así que el gráfico se alarga solo.
+        </p>
+      )}
+    </section>
+  )
+}

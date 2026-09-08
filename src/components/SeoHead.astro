@@ -1,0 +1,50 @@
+---
+const {
+  title,
+  description,
+  canonical,
+  locale = 'es_419',
+  type = 'website',
+  jsonLd = [],
+  publishedTime,
+  modifiedTime
+} = Astro.props;
+
+const site = Astro.site ? Astro.site.origin : 'https://cambioclaro.com';
+const canonicalUrl = new URL(canonical, site).href;
+const schemas = Array.isArray(jsonLd) ? jsonLd.filter(Boolean) : [jsonLd].filter(Boolean);
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="generator" content={Astro.generator} />
+
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonicalUrl} />
+
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+<meta name="theme-color" content="#1b4636" media="(prefers-color-scheme: dark)" />
+<meta name="theme-color" content="#1e4d3b" media="(prefers-color-scheme: light)" />
+
+<meta property="og:type" content={type} />
+<meta property="og:site_name" content="Cambio Claro" />
+<meta property="og:locale" content={locale} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonicalUrl} />
+{publishedTime && <meta property="article:published_time" content={publishedTime} />}
+{modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="alternate" type="application/xml" href="/sitemap-index.xml" />
+
+{
+  schemas.map((schema) => (
+    <script type="application/ld+json" set:html={JSON.stringify(schema)} />
+  ))
+}

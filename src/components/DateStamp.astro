@@ -1,0 +1,25 @@
+---
+import { formatStamp } from '../utils/format.js';
+
+const { measuredAt, timezone, tone = 'cover' } = Astro.props;
+const stamp = formatStamp(measuredAt, timezone);
+const live = Boolean(measuredAt);
+const color = tone === 'cover' ? 'var(--cover-ink)' : 'var(--ink-soft)';
+const border = tone === 'cover' ? 'rgba(242,234,214,0.42)' : 'var(--rule-strong)';
+---
+
+<span
+  class="inline-flex -rotate-[1.4deg] items-center gap-2 rounded-[3px] border px-2.5 py-1.5 stamp"
+  style={`color: ${color}; border-color: ${border}`}
+>
+  {
+    live && (
+      <span
+        class="inline-block h-1.5 w-1.5 rounded-full"
+        style={`background-color: ${tone === 'cover' ? 'var(--cover-ink)' : 'var(--deposit)'}`}
+        aria-hidden="true"
+      />
+    )
+  }
+  <time datetime={measuredAt || undefined}>{stamp}</time>
+</span>

@@ -1,0 +1,41 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { countryList } from '../utils/countries.js';
+
+const countries = countryList();
+---
+
+<BaseLayout
+  title="Página no encontrada | Cambio Claro"
+  description="La dirección solicitada no existe. Elige un país para ver el precio del dólar."
+  canonical="/404"
+>
+  <div class="mx-auto max-w-shell px-4 py-16 sm:px-6 lg:px-8 md:py-24">
+    <p class="label" style="color: var(--deposit)">Error 404</p>
+    <h1
+      class="mt-4 max-w-[18ch] text-[clamp(1.875rem,4.6vw,2.75rem)] font-bold leading-[1.06]"
+      style="color: var(--ink)"
+    >
+      Esta página no está en el libro
+    </h1>
+    <p class="mt-4 max-w-note text-[1.0625rem] leading-relaxed" style="color: var(--ink-soft)">
+      La dirección que abriste no corresponde a nada publicado. Estos son los países que sí existen.
+    </p>
+
+    <div class="mt-9 grid max-w-2xl gap-3 sm:grid-cols-2">
+      {
+        countries.map((country) => (
+          <a
+            href={`/${country.code}/dolar-hoy`}
+            class="leaf flex items-center justify-between gap-4 px-4 py-3.5 no-underline transition-transform duration-300 ease-settle hover:-translate-y-0.5"
+          >
+            <span class="text-[0.9375rem] font-semibold" style="color: var(--ink)">
+              Dólar en {country.name}
+            </span>
+            <span class="figure label" style="color: var(--ink-faint)">{country.currency}</span>
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</BaseLayout>

@@ -1,0 +1,103 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdSensePlaceholder from '../../components/AdSensePlaceholder.astro';
+import CountryCard from '../../components/CountryCard.astro';
+import { formatLongDay } from '../../utils/format.js';
+import { fetchAllBoards } from '../../utils/api.js';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const notes = await getCollection('notas');
+  const boards = await fetchAllBoards({ series: false });
+  return notes.map((note) => ({
+    params: { slug: note.id },
+    props: {
+      note,
+      boards: note.data.pais
+        ? boards.filter((board) => board.country.code === note.data.pais)
+        : boards.slice(0, 3)
+    }
+  }));
+}
+
+const { note, boards } = Astro.props;
+const { Content } = await render(note);
+
+const canonical = `/notas/${note.id}`;
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: note.data.titulo,
+    description: note.data.resumen,
+    datePublished: note.data.fecha,
+    dateModified: note.data.actualizada || note.data.fecha,
+    inLanguage: 'es',
+    mainEntityOfPage: `https://cambioclaro.com${canonical}`,
+    publisher: { '@type': 'Organization', name: 'Cambio Claro' }
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Cambio Claro', item: 'https://cambioclaro.com' },
+      { '@type': 'ListItem', position: 2, name: 'Notas', item: 'https://cambioclaro.com/notas' },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: note.data.titulo,
+        item: `https://cambioclaro.com${canonical}`
+      }
+    ]
+  }
+];
+---
+
+<BaseLayout
+  title={`${note.data.titulo} | Cambio Claro`}
+  description={note.data.resumen}
+  canonical={canonical}
+  jsonLd={jsonLd}
+  modifiedTime={note.data.actualizada || note.data.fecha}
+>
+  <div class="mx-auto max-w-shell px-4 py-10 sm:px-6 lg:px-8 lg:py-12">
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_19rem] xl:gap-10">
+      <article class="min-w-0">
+        <nav aria-label="Ruta" class="label" style="color: var(--ink-faint)">
+          <a href="/notas" class="no-underline" style="color: var(--deposit)">Notas</a>
+        </nav>
+
+        <h1 class="mt-4 max-w-[22ch] text-[clamp(1.875rem,4.4vw,2.75rem)] font-bold leading-[1.06]" style="color: var(--ink)">
+          {note.data.titulo}
+        </h1>
+
+        <p class="mt-4 label" style="color: var(--ink-faint)">
+          {formatLongDay(note.data.fecha)} · {note.data.lectura} min de lectura
+        </p>
+
+        <div class="prose-note mt-8 max-w-note">
+          <Content />
+        </div>
+
+        <div class="mt-12 max-w-note">
+          <AdSensePlaceholder slot="horizontal" />
+        </div>
+      </article>
+
+      <aside class="min-w-0 space-y-6 lg:sticky lg:top-6 lg:self-start">
+        <section aria-labelledby="cotiza" class="leaf-flat overflow-hidden">
+          <div class="px-4 py-3 sm:px-5" style="background-color: var(--cover); color: var(--cover-ink)">
+            <h2 id="cotiza" class="text-[0.9375rem] font-bold">El dólar ahora</h2>
+          </div>
+          <div class="divide-y" style="border-color: var(--rule)">
+            {boards.map((board, index) => <CountryCard board={board} index={index} />)}
+          </div>
+        </section>
+
+        <div class="hidden lg:block">
+          <AdSensePlaceholder slot="rectangle" />
+        </div>
+      </aside>
+    </div>
+  </div>
+</BaseLayout>

@@ -1,0 +1,31 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+const { title, description, canonical, heading, lead, updated } = Astro.props;
+---
+
+<BaseLayout title={title} description={description} canonical={canonical}>
+  <div class="mx-auto max-w-shell px-4 py-10 sm:px-6 lg:px-8 md:py-14">
+    <h1 class="max-w-[20ch] text-[clamp(1.875rem,4.4vw,2.75rem)] font-bold leading-[1.06]" style="color: var(--ink)">
+      {heading}
+    </h1>
+    {
+      lead && (
+        <p class="mt-4 max-w-note text-[1.0625rem] leading-relaxed" style="color: var(--ink-soft)">
+          {lead}
+        </p>
+      )
+    }
+    {
+      updated && (
+        <p class="mt-4 label" style="color: var(--ink-faint)">
+          Actualizado el {updated}
+        </p>
+      )
+    }
+
+    <div class="prose-note mt-9 max-w-note">
+      <slot />
+    </div>
+  </div>
+</BaseLayout>

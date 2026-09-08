@@ -1,0 +1,39 @@
+---
+const { slot = 'horizontal', label = 'Publicidad', client = '', unit = '' } = Astro.props;
+
+const reserved = {
+  horizontal: 'min-h-[100px]',
+  rectangle: 'min-h-[250px]',
+  inline: 'min-h-[160px]'
+};
+---
+
+{
+  client ? (
+    <aside
+      role="complementary"
+      aria-label={label}
+      data-ad-slot={slot}
+      data-ad-client={client}
+      data-ad-unit={unit || undefined}
+      class={`flex items-center justify-center rounded-2xl ${reserved[slot] || reserved.horizontal}`}
+      style="background-color: var(--paper-band)"
+    >
+      <p class="label" style="color: var(--ink-faint)">
+        {label}
+      </p>
+    </aside>
+  ) : (
+    <aside
+      role="complementary"
+      aria-label={label}
+      data-ad-slot={slot}
+      data-ad-reserved="false"
+      class="flex items-center gap-3 py-1.5"
+    >
+      <span class="h-px flex-1" style="background-color: var(--rule)" aria-hidden="true"></span>
+      <span class="label" style="color: var(--ink-faint)">{label}</span>
+      <span class="h-px flex-1" style="background-color: var(--rule)" aria-hidden="true"></span>
+    </aside>
+  )
+}
