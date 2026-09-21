@@ -1,7 +1,7 @@
 # Cambio Claro
 
 Precio del dólar oficial y paralelo en ocho países de Latinoamérica. Astro en modo estático, sin
-framework de UI, con comparador de plataformas P2P, calculadora, histórico propio y API pública.
+framework de UI, con comparador de plataformas P2P, calculadora, histórico propio y API pública
 
 ## Poner en marcha
 
