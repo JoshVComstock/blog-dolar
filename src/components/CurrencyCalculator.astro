@@ -1,0 +1,259 @@
+---
+import SectionHeader from './SectionHeader.astro';
+import { formatFigure } from '../utils/format.js';
+
+const { rates = [], country, primaryKey } = Astro.props;
+const { currency, currencyName, symbol, locale, decimals, name } = country;
+
+const ordered = [
+  ...rates.filter((rate) => rate.key === primaryKey),
+  ...rates.filter((rate) => rate.key !== primaryKey)
+];
+
+const QUICK = [50, 100, 500, 1000];
+const START = 100;
+---
+
+<section
+  aria-labelledby="convertir"
+  class="leaf overflow-hidden"
+  data-calc
+  data-locale={locale}
+  data-decimals={decimals}
+  data-currency={currency}
+  data-symbol={symbol}
+  data-country={name}
+>
+  <div class="px-4 py-3" style="background-color: var(--cover); color: var(--cover-ink)">
+    <h2 id="convertir" class="text-[0.9375rem] font-bold">Convertir</h2>
+    <p class="mt-1 text-[0.75rem] opacity-70">
+      Escribe un monto y mira cuánto recibes en cada cotización
+    </p>
+  </div>
+
+  <div class="px-4 pb-5 pt-4">
+    <div
+      class="grid grid-cols-2 gap-px rounded-[3px] p-px"
+      style="background-color: var(--rule-strong)"
+      role="group"
+      aria-label="Qué moneda tienes"
+    >
+      <button
+        type="button"
+        data-mode="usd"
+        aria-pressed="true"
+        class="rounded-[2px] px-2 py-2 text-[0.8125rem] font-semibold transition-colors duration-150"
+      >
+        Tengo dólares
+      </button>
+      <button
+        type="button"
+        data-mode="local"
+        aria-pressed="false"
+        class="rounded-[2px] px-2 py-2 text-[0.8125rem] font-semibold transition-colors duration-150"
+      >
+        Tengo {currency}
+      </button>
+    </div>
+
+    <label for="calc-amount" class="mt-4 block label" style="color: var(--ink-faint)">
+      Monto en <span data-unit>USD</span>
+    </label>
+    <div
+      class="mt-2 flex items-center gap-2 rounded-[3px] border px-3 py-2.5"
+      style="border-color: var(--rule-strong)"
+    >
+      <span class="figure text-[1.0625rem] font-semibold" style="color: var(--ink-faint)" data-prefix>
+        US$
+      </span>
+      <input
+        id="calc-amount"
+        data-amount
+        value={String(START)}
+        inputmode="decimal"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="100"
+        aria-describedby="calc-hint"
+        class="figure w-full min-w-0 bg-transparent text-[1.625rem] font-bold leading-tight tracking-[-0.035em] outline-none"
+        style="color: var(--ink)"
+      />
+    </div>
+
+    <div class="mt-2.5 flex flex-wrap gap-1.5">
+      {
+        QUICK.map((value) => (
+          <button
+            type="button"
+            data-quick={value}
+            class="rounded-[2px] border px-2 py-1 figure text-[0.8125rem] font-semibold transition-opacity duration-150 hover:opacity-70"
+            style="border-color: var(--rule); color: var(--ink-soft)"
+          >
+            {value}
+          </button>
+        ))
+      }
+    </div>
+
+    <p id="calc-hint" class="mt-3 text-[0.8125rem] leading-relaxed" style="color: var(--ink-faint)" data-hint>
+      Con dólares se aplica el precio de <strong>compra</strong>: lo que te pagan por cada dólar en {name}.
+    </p>
+
+    <ul class="mt-4 space-y-2">
+      {
+        ordered.map((rate, index) => (
+          <li
+            class:list={[
+              'rounded-[3px] border px-3 py-3',
+              index === 0 ? 'row-invert' : ''
+            ]}
+            style="border-color: var(--rule)"
+            data-result
+            data-buy={rate.buy ?? ''}
+            data-sell={rate.sell ?? ''}
+          >
+            <div class="flex items-baseline justify-between gap-3">
+              <span class="text-[0.8125rem] font-semibold">
+                {rate.label}
+                {rate.indicative && (
+                  <span class="ml-1 label" style="opacity: 0.6">
+                    indicativa
+                  </span>
+                )}
+              </span>
+              <span class="figure shrink-0 text-[1.1875rem] font-bold tracking-[-0.03em]" data-out>
+                <span class="mr-1 text-[0.66em] font-semibold" style="opacity: 0.6" data-out-symbol>
+                  {symbol}
+                </span>
+                <span data-out-value>
+                  {formatFigure(rate.buy ? START * rate.buy : null, locale, decimals)}
+                </span>
+              </span>
+            </div>
+            <p class="mt-1.5 figure text-[0.75rem]" style="opacity: 0.62" data-rate-line>
+              1 USD = {formatFigure(rate.buy, locale, decimals)} {currency} · compra
+            </p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<script>
+  const root = document.querySelector('[data-calc]');
+
+  if (root) {
+    const locale = root.dataset.locale || 'es';
+    const decimals = Number(root.dataset.decimals) || 2;
+    const currency = root.dataset.currency || '';
+    const symbol = root.dataset.symbol || '';
+
+    const input = root.querySelector('[data-amount]');
+    const unit = root.querySelector('[data-unit]');
+    const prefix = root.querySelector('[data-prefix]');
+    const hint = root.querySelector('[data-hint]');
+    const modes = Array.from(root.querySelectorAll('[data-mode]'));
+    const results = Array.from(root.querySelectorAll('[data-result]'));
+    const countryName = root.dataset.country || '';
+
+    let holdingUsd = true;
+
+    const parse = (raw) => {
+      const cleaned = String(raw).replace(/[^\d.,]/g, '');
+      if (!cleaned) return null;
+      const lastComma = cleaned.lastIndexOf(',');
+      const lastDot = cleaned.lastIndexOf('.');
+      const cut = Math.max(lastComma, lastDot);
+      const normalized =
+        cut === -1
+          ? cleaned
+          : cleaned.slice(0, cut).replace(/[.,]/g, '') + '.' + cleaned.slice(cut + 1).replace(/[.,]/g, '');
+      const value = Number(normalized);
+      return Number.isFinite(value) ? value : NaN;
+    };
+
+    const format = (value, digits) =>
+      new Intl.NumberFormat(locale, {
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits
+      }).format(value);
+
+    const setModeStyles = () => {
+      modes.forEach((button) => {
+        const active = (button.dataset.mode === 'usd') === holdingUsd;
+        button.setAttribute('aria-pressed', String(active));
+        button.style.backgroundColor = active ? 'var(--ink)' : 'var(--paper-leaf)';
+        button.style.color = active ? 'var(--paper-leaf)' : 'var(--ink-soft)';
+      });
+    };
+
+    const render = () => {
+      const parsed = parse(input.value);
+      const invalid = Number.isNaN(parsed);
+      const empty = parsed === null;
+      const amount = empty || invalid ? 1 : parsed;
+      const side = holdingUsd ? 'compra' : 'venta';
+      const digits = holdingUsd ? decimals : 2;
+
+      if (unit) unit.textContent = holdingUsd ? 'USD' : currency;
+      if (prefix) prefix.textContent = holdingUsd ? 'US$' : symbol;
+      input.setAttribute('aria-invalid', invalid ? 'true' : 'false');
+
+      if (hint) {
+        hint.innerHTML = invalid
+          ? 'Solo números. Borra las letras y escribe el monto otra vez.'
+          : empty
+            ? 'Escribe un monto para ver la conversión.'
+            : holdingUsd
+              ? `Con dólares se aplica el precio de <strong>compra</strong>: lo que te pagan por cada dólar en ${countryName}.`
+              : `Con ${currency} se aplica el precio de <strong>venta</strong>: lo que te cobran por cada dólar en ${countryName}.`;
+      }
+
+      results.forEach((row) => {
+        const buy = Number(row.dataset.buy);
+        const sell = Number(row.dataset.sell);
+        const applied = holdingUsd ? buy || sell : sell || buy;
+        const out = row.querySelector('[data-out-value]');
+        const sign = row.querySelector('[data-out-symbol]');
+        const line = row.querySelector('[data-rate-line]');
+
+        if (sign) sign.textContent = holdingUsd ? symbol : 'US$';
+
+        if (!Number.isFinite(applied) || applied === 0) {
+          if (out) out.textContent = '—';
+          if (line) line.textContent = 'sin dato';
+          return;
+        }
+
+        const value = holdingUsd ? amount * applied : amount / applied;
+        if (out) out.textContent = format(value, digits);
+        if (line) line.textContent = `1 USD = ${format(applied, decimals)} ${currency} · ${side}`;
+      });
+
+      window.dispatchEvent(
+        new CustomEvent('cc:amount', { detail: { amount, holdingUsd, currency } })
+      );
+    };
+
+    input.addEventListener('input', render);
+
+    modes.forEach((button) => {
+      button.addEventListener('click', () => {
+        holdingUsd = button.dataset.mode === 'usd';
+        setModeStyles();
+        render();
+      });
+    });
+
+    root.querySelectorAll('[data-quick]').forEach((button) => {
+      button.addEventListener('click', () => {
+        input.value = button.dataset.quick;
+        render();
+      });
+    });
+
+    setModeStyles();
+    render();
+  }
+</script>

@@ -1,0 +1,101 @@
+---
+import '../../styles/ledger.css';
+import { fetchAllBoards } from '../../utils/api.js';
+import { formatFigure, formatStamp } from '../../utils/format.js';
+import { SITE } from '../../utils/site.js';
+
+export async function getStaticPaths() {
+  const boards = await fetchAllBoards({ series: false, p2p: false, fx: false });
+  return boards.map((board) => ({ params: { country: board.country.code }, props: { board } }));
+}
+
+const { board } = Astro.props;
+const { country, rates, primary, measuredAt, available } = board;
+const { locale, decimals, symbol, name } = country;
+
+const official = rates.find((rate) => rate.key === 'oficial');
+const parallel = rates.find((rate) => rate.indicative && rate.key !== 'oficial');
+const shown = [official, parallel].filter(Boolean).slice(0, 2);
+const list = shown.length ? shown : primary ? [primary] : [];
+const target = `${SITE}/${country.code}/dolar-hoy`;
+const host = new URL(SITE).host;
+---
+
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, follow" />
+    <title>Dólar hoy en {name} — Cambio Claro</title>
+    <link rel="canonical" href={target} />
+    <script is:inline>
+      (function () {
+        try {
+          var params = new URLSearchParams(location.search);
+          var theme = params.get('theme');
+          var dark =
+            theme === 'dark' ||
+            (theme !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.classList.toggle('dark', dark);
+          document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+        } catch (error) {
+          void error;
+        }
+      })();
+    </script>
+    <style is:inline>
+      body {
+        margin: 0;
+        padding: 0;
+        background: transparent;
+      }
+    </style>
+  </head>
+  <body>
+    <a
+      href={target}
+      target="_blank"
+      rel="noopener"
+      class="block no-underline"
+      style="background-color: var(--paper-leaf); border: 1px solid var(--rule); border-radius: 4px"
+    >
+      <div
+        class="flex items-center justify-between gap-4 px-3 py-2"
+        style="background-color: var(--cover); color: var(--cover-ink)"
+      >
+        <span class="label">Dólar hoy en {name}</span>
+        <span class="stamp" style="opacity: 0.7">Cambio Claro</span>
+      </div>
+
+      <div class="px-3 py-3">
+        {
+          available && list.length > 0 ? (
+            <div class="flex flex-wrap gap-x-6 gap-y-3">
+              {list.map((rate) => (
+                <div>
+                  <p class="label" style="color: var(--ink-faint)">
+                    {rate.label}
+                  </p>
+                  <p class="mt-1 figure text-[1.375rem] font-bold tracking-[-0.03em]" style="color: var(--ink)">
+                    <span class="mr-1 text-[0.58em] font-semibold" style="color: var(--ink-faint)">
+                      {symbol}
+                    </span>
+                    {formatFigure(rate.sell, locale, decimals)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p class="figure text-[1.375rem] font-bold" style="color: var(--ink-faint)">
+              — —
+            </p>
+          )
+        }
+        <p class="mt-2.5 stamp" style="color: var(--ink-faint)">
+          {formatStamp(measuredAt, country.timezone)} · {host}
+        </p>
+      </div>
+    </a>
+  </body>
+</html>

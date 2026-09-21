@@ -1,0 +1,217 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SectionHeader from '../../components/SectionHeader.astro';
+import DateStamp from '../../components/DateStamp.astro';
+import Movement from '../../components/Movement.astro';
+import P2PComparator from '../../components/P2PComparator.astro';
+import AdSensePlaceholder from '../../components/AdSensePlaceholder.astro';
+import CurrencyCalculator from '../../components/CurrencyCalculator.astro';
+import { fetchAllBoards, fetchBoard } from '../../utils/api.js';
+import { formatFigure, isoDate, formatLongDay } from '../../utils/format.js';
+import { breadcrumb, faqPage, exchangeRate, webPage } from '../../utils/seo.js';
+
+export async function getStaticPaths() {
+  const light = await fetchAllBoards({ series: false, p2p: false });
+  const withParallel = light.filter((board) => board.country.hasParallel);
+  const boards = await Promise.all(
+    withParallel.map((board) => fetchBoard(board.country.code, { series: false }))
+  );
+
+  return boards.map((board) => ({ params: { country: board.country.code }, props: { board } }));
+}
+
+const { board } = Astro.props;
+const { country, rates, spread, measuredAt } = board;
+const { locale, decimals, symbol, name } = country;
+
+const official = rates.find((rate) => rate.key === 'oficial');
+const parallel = rates.find((rate) => rate.indicative && rate.key !== 'oficial');
+
+const canonical = `/${country.code}/dolar-paralelo`;
+const title = `Dólar paralelo en ${name} hoy — precio y brecha con el oficial | Cambio Claro`;
+
+const answer = parallel
+  ? `El dólar ${parallel.label.toLowerCase()} en ${name} está en ${symbol} ${formatFigure(parallel.sell, locale, decimals)} para la venta y ${symbol} ${formatFigure(parallel.buy, locale, decimals)} para la compra.`
+  : `Ahora mismo no tenemos una referencia del dólar paralelo en ${name}.`;
+
+const description = `${answer} Comparado con el oficial y con las plataformas donde se opera.`;
+
+const faq = [
+  {
+    q: `¿A cuánto está el dólar paralelo en ${name} hoy?`,
+    a: `${answer} La hora exacta de la medición aparece junto al título.`
+  },
+  {
+    q: '¿Qué es el dólar paralelo?',
+    a: country.variantsNote
+  },
+  {
+    q: '¿Por qué no hay una fuente oficial del paralelo?',
+    a: 'Porque no es un precio administrado: se forma en operaciones entre particulares y plataformas de intercambio. Lo que publicamos es una referencia construida con esas operaciones, no una cotización de mostrador.'
+  },
+  {
+    q: '¿Qué significa la brecha?',
+    a: spread
+      ? `Es la diferencia porcentual entre el paralelo y el oficial. Hoy es de ${spread.value.toFixed(1).replace('.', ',')} %.`
+      : 'Es la diferencia porcentual entre el paralelo y el oficial. Cuanto más grande, más se separa el mercado informal del precio administrado.'
+  }
+];
+
+const jsonLd = [
+  webPage(title, description, canonical, measuredAt),
+  breadcrumb([
+    { name: 'Cambio Claro', path: '/' },
+    { name: `Dólar hoy en ${name}`, path: `/${country.code}/dolar-hoy` },
+    { name: `Dólar paralelo en ${name}`, path: canonical }
+  ]),
+  faqPage(faq)
+];
+
+if (parallel) jsonLd.push(exchangeRate(country, parallel, canonical));
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonical={canonical}
+  activeCountry={country.code}
+  lang={locale}
+  locale={`es_${country.code.toUpperCase()}`}
+  image={`/og/${country.code}.png`}
+  jsonLd={jsonLd}
+  modifiedTime={isoDate(measuredAt)}
+>
+  <div class="mx-auto max-w-shell px-4 py-7 sm:px-6 lg:px-8">
+    <nav aria-label="Ruta" class="stamp" style="color: var(--ink-faint)">
+      <a href="/" class="no-underline hover:underline">Cambio Claro</a>
+      <span aria-hidden="true"> / </span>
+      <a href={`/${country.code}/dolar-hoy`} class="no-underline hover:underline">
+        Dólar hoy en {name}
+      </a>
+    </nav>
+
+    <div class="mt-5 grid gap-7 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+      <article class="leaf spine overflow-hidden lg:col-start-1 lg:row-start-1">
+        <div
+          class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-2.5 sm:px-5"
+          style="background-color: var(--cover); color: var(--cover-ink)"
+        >
+          <p class="label" style="opacity: 0.72">Mercado paralelo · {country.currency}</p>
+          <DateStamp measuredAt={measuredAt} timezone={country.timezone} tone="cover" />
+        </div>
+
+        <div class="px-4 py-6 sm:px-5">
+          <h1 class="text-[1.375rem] font-bold leading-tight" style="color: var(--ink)">
+            Dólar paralelo en {name}
+          </h1>
+          <p class="mt-2.5 max-w-note text-[1.0625rem] font-semibold leading-snug" style="color: var(--ink)">
+            {answer}
+          </p>
+
+          {
+            parallel && (
+              <div class="mt-6 grid gap-x-8 gap-y-6 sm:grid-cols-2">
+                <div>
+                  <p class="label mb-2" style="color: var(--ink-faint)">Paralelo · venta</p>
+                  <p class="figure-pair flex items-baseline gap-1.5" style="color: var(--ink)">
+                    <span class="text-[0.34em] font-semibold" style="color: var(--ink-faint)">
+                      {symbol}
+                    </span>
+                    {formatFigure(parallel.sell, locale, decimals)}
+                  </p>
+                  <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+                    <Movement
+                      change={parallel.change}
+                      changePct={parallel.changePct}
+                      locale={locale}
+                      decimals={decimals}
+                    />
+                    <span class="figure-cell" style="color: var(--ink-faint)">
+                      compra {formatFigure(parallel.buy, locale, decimals)}
+                    </span>
+                  </div>
+                </div>
+
+                {official && (
+                  <div>
+                    <p class="label mb-2" style="color: var(--ink-faint)">Oficial · venta</p>
+                    <p class="figure-pair flex items-baseline gap-1.5" style="color: var(--ink-soft)">
+                      <span class="text-[0.34em] font-semibold" style="color: var(--ink-faint)">
+                        {symbol}
+                      </span>
+                      {formatFigure(official.sell, locale, decimals)}
+                    </p>
+                    <p class="mt-3 figure-cell" style="color: var(--ink-faint)">
+                      lo fija la autoridad monetaria
+                    </p>
+                  </div>
+                )}
+              </div>
+            )
+          }
+
+          {
+            spread && (
+              <div class="mt-6 rounded-[3px] px-4 py-3.5" style="background-color: var(--paper-band)">
+                <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <span class="label" style="color: var(--ink-faint)">Brecha con el oficial</span>
+                  <span class="figure text-[1.0625rem] font-bold" style="color: var(--ink)">
+                    {`${spread.value > 0 ? '+' : ''}${spread.value.toFixed(1).replace('.', ',')} %`}
+                  </span>
+                </div>
+                <p class="mt-1.5 text-[0.875rem] leading-relaxed" style="color: var(--ink-soft)">
+                  {spread.value >= 0
+                    ? 'El paralelo está por encima del oficial: conseguir dólares fuera del canal oficial cuesta más caro.'
+                    : 'El paralelo está por debajo del oficial, algo poco habitual: hoy sale más barato comprar fuera del canal oficial que al tipo de cambio publicado.'}
+                </p>
+              </div>
+            )
+          }
+
+          <p class="mt-6 max-w-note text-[0.9375rem] leading-[1.7]" style="color: var(--ink-soft)">
+            {country.variantsNote}
+          </p>
+        </div>
+      </article>
+
+      <aside class="min-w-0 space-y-6 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-5">
+        {board.available && (
+          <CurrencyCalculator rates={rates} country={country} primaryKey={(parallel || board.primary).key} />
+        )}
+        <AdSensePlaceholder slot="rectangle" />
+      </aside>
+
+      <div class="min-w-0 space-y-7 lg:col-start-1 lg:row-start-2">
+        <P2PComparator rows={board.p2p} summary={board.p2pSummary} country={country} />
+
+        <section aria-labelledby="preguntas" class="rule-strong-top pt-5">
+          <SectionHeader
+            id="preguntas"
+            title="Preguntas frecuentes"
+            hint={`Actualizado el ${formatLongDay(isoDate(measuredAt) || new Date().toISOString())}.`}
+          />
+          <dl class="mt-3 max-w-note">
+            {
+              faq.map((item) => (
+                <div class="border-t py-4" style="border-color: var(--rule)">
+                  <dt class="text-[0.9375rem] font-bold leading-snug" style="color: var(--ink)">
+                    {item.q}
+                  </dt>
+                  <dd class="mt-2 text-[0.9375rem] leading-relaxed" style="color: var(--ink-soft)">
+                    {item.a}
+                  </dd>
+                </div>
+              ))
+            }
+          </dl>
+        </section>
+
+        <p class="text-[0.9375rem]" style="color: var(--ink-soft)">
+          <a href={`/${country.code}/dolar-hoy`} style="color: var(--ink)">
+            Ver todas las cotizaciones del dólar en {name}
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

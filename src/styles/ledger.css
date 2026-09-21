@@ -7,54 +7,57 @@
 
 @layer base {
   :root {
-    --paper: #f7f1e1;
-    --paper-leaf: #fffaf0;
-    --paper-band: #efe6cf;
-    --cover: #1e4d3b;
-    --cover-deep: #163a2c;
-    --cover-ink: #f2ead6;
-    --ink: #221d14;
-    --ink-soft: #4e4536;
-    --ink-faint: #6e6553;
-    --rule: rgba(30, 77, 59, 0.2);
-    --rule-strong: rgba(30, 77, 59, 0.4);
-    --deposit: #17693f;
-    --deposit-wash: rgba(23, 105, 63, 0.1);
-    --withdraw: #a62f22;
-    --withdraw-wash: rgba(166, 47, 34, 0.09);
-    --rule-faint: rgba(30, 77, 59, 0.09);
-    --deposit-on-cover: #7fd6a5;
-    --withdraw-on-cover: #f5a99f;
-    --leaf-shadow: 0 1px 2px rgba(34, 29, 20, 0.05), 0 10px 26px -12px rgba(34, 29, 20, 0.22);
+    --paper: #fbfbfa;
+    --paper-leaf: #ffffff;
+    --paper-band: #f1f1ef;
+    --paper-sunk: #e8e8e5;
+    --cover: #151514;
+    --cover-deep: #0a0a0a;
+    --cover-ink: #fafaf8;
+    --ink: #151514;
+    --ink-soft: #4d4d4a;
+    --ink-faint: #82827c;
+    --rule: rgba(21, 21, 20, 0.12);
+    --rule-strong: rgba(21, 21, 20, 0.26);
+    --rule-faint: rgba(21, 21, 20, 0.05);
+    --accent: #151514;
+    --accent-ink: #fafaf8;
+    --deposit: #151514;
+    --deposit-wash: rgba(21, 21, 20, 0.06);
+    --withdraw: #151514;
+    --withdraw-wash: transparent;
+    --deposit-on-cover: #fafaf8;
+    --withdraw-on-cover: #fafaf8;
     color-scheme: light;
   }
 
   html.dark {
-    --paper: #191712;
-    --paper-leaf: #211e17;
-    --paper-band: #2a2620;
-    --cover: #1b4636;
-    --cover-deep: #123024;
-    --cover-ink: #e8dfc8;
-    --ink: #f2ead6;
-    --ink-soft: #c9bfa6;
-    --ink-faint: #948b75;
-    --rule: rgba(242, 234, 214, 0.16);
-    --rule-strong: rgba(242, 234, 214, 0.32);
-    --deposit: #4fbf83;
-    --deposit-wash: rgba(79, 191, 131, 0.12);
-    --withdraw: #e8776a;
-    --withdraw-wash: rgba(232, 119, 106, 0.12);
-    --rule-faint: rgba(242, 234, 214, 0.07);
-    --deposit-on-cover: #7fd6a5;
-    --withdraw-on-cover: #f5a99f;
-    --leaf-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 14px 34px -16px rgba(0, 0, 0, 0.7);
+    --paper: #0d0d0c;
+    --paper-leaf: #151514;
+    --paper-band: #1e1e1c;
+    --paper-sunk: #262624;
+    --cover: #000000;
+    --cover-deep: #000000;
+    --cover-ink: #f4f4f1;
+    --ink: #f4f4f1;
+    --ink-soft: #b3b3ae;
+    --ink-faint: #82827c;
+    --rule: rgba(244, 244, 241, 0.14);
+    --rule-strong: rgba(244, 244, 241, 0.3);
+    --rule-faint: rgba(244, 244, 241, 0.06);
+    --accent: #f4f4f1;
+    --accent-ink: #0d0d0c;
+    --deposit: #f4f4f1;
+    --deposit-wash: rgba(244, 244, 241, 0.1);
+    --withdraw: #f4f4f1;
+    --withdraw-wash: transparent;
+    --deposit-on-cover: #f4f4f1;
+    --withdraw-on-cover: #f4f4f1;
     color-scheme: dark;
   }
 
   html {
     -webkit-text-size-adjust: 100%;
-    scrollbar-color: var(--ink-faint) var(--paper);
   }
 
   body {
@@ -66,41 +69,18 @@
   }
 
   ::selection {
-    background: var(--cover);
-    color: var(--cover-ink);
-  }
-
-  ::-webkit-scrollbar {
-    width: 12px;
-    height: 12px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: var(--paper);
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: var(--ink-faint);
-    border: 3px solid var(--paper);
-    border-radius: 99px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--ink-soft);
+    background: var(--ink);
+    color: var(--paper);
   }
 
   :focus-visible {
-    outline: 2px solid var(--cover);
-    outline-offset: 3px;
-    border-radius: 4px;
-  }
-
-  html.dark :focus-visible {
-    outline-color: var(--deposit);
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+    border-radius: 2px;
   }
 
   input {
-    caret-color: var(--cover);
+    caret-color: var(--ink);
     background: transparent;
     color: inherit;
   }
@@ -119,7 +99,7 @@
   h2,
   h3 {
     text-wrap: balance;
-    letter-spacing: -0.022em;
+    letter-spacing: -0.021em;
   }
 
   p {
@@ -132,54 +112,53 @@
 }
 
 @layer components {
-  .leaf {
-    background-color: var(--paper-leaf);
-    border: 1px solid var(--rule);
-    border-radius: 16px;
-    box-shadow: var(--leaf-shadow);
-  }
-
+  .leaf,
   .leaf-flat {
     background-color: var(--paper-leaf);
     border: 1px solid var(--rule);
-    border-radius: 16px;
-  }
-
-  .ruled-paper {
-    background-image: repeating-linear-gradient(
-      to bottom,
-      transparent 0,
-      transparent calc(var(--rule-step, 2.25rem) - 1px),
-      var(--rule-faint) calc(var(--rule-step, 2.25rem) - 1px),
-      var(--rule-faint) var(--rule-step, 2.25rem)
-    );
-    background-position: 0 var(--rule-offset, 0.6rem);
+    border-radius: 4px;
   }
 
   .spine {
     position: relative;
+    padding-left: 2px;
   }
 
   .spine::before {
     content: '';
     position: absolute;
     inset: 0 auto 0 0;
-    width: 6px;
-    background-color: var(--cover);
-    border-radius: 16px 0 0 16px;
+    width: 2px;
+    background-color: var(--ink);
+  }
+
+  .ruled-paper {
+    background-image: none;
+  }
+
+  .rule-strong-top {
+    border-top: 1px solid var(--rule-strong);
   }
 
   .invert-mark {
     display: inline-block;
-    padding: 0.28em 0.6em 0.32em;
-    border-radius: 5px;
-    background-color: var(--cover);
-    color: var(--cover-ink);
+    padding: 0.26em 0.5em 0.3em;
+    border-radius: 2px;
+    background-color: var(--ink);
+    color: var(--paper-leaf);
+  }
+
+  .outline-mark {
+    display: inline-block;
+    padding: 0.22em 0.46em 0.26em;
+    border-radius: 2px;
+    border: 1px solid var(--rule-strong);
+    color: var(--ink-soft);
   }
 
   .scroll-fade {
-    -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 2.5rem), transparent 100%);
-    mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 2.5rem), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 2rem), transparent 100%);
+    mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 2rem), transparent 100%);
   }
 
   @media (min-width: 1024px) {
@@ -198,7 +177,7 @@
     font-weight: 600;
     font-size: 0.6875rem;
     line-height: 1;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.09em;
     text-transform: uppercase;
   }
 
@@ -207,8 +186,14 @@
     font-weight: 600;
     font-size: 0.8125rem;
     line-height: 1.2;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.07em;
     text-transform: uppercase;
+  }
+
+  .hint {
+    font-size: 0.875rem;
+    line-height: 1.55;
+    color: var(--ink-faint);
   }
 
   .stamp {
@@ -217,7 +202,7 @@
     font-weight: 500;
     font-size: 0.6875rem;
     line-height: 1;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.02em;
     text-transform: uppercase;
   }
 
@@ -230,27 +215,27 @@
     font-family: theme('fontFamily.mono');
     font-variant-numeric: tabular-nums;
     font-weight: 600;
-    font-size: clamp(2.75rem, 8vw, 5rem);
-    line-height: 0.94;
-    letter-spacing: -0.04em;
+    font-size: clamp(2.75rem, 8vw, 4.5rem);
+    line-height: 0.95;
+    letter-spacing: -0.045em;
   }
 
   .figure-pair {
     font-family: theme('fontFamily.mono');
     font-variant-numeric: tabular-nums;
     font-weight: 600;
-    font-size: clamp(1.75rem, 3.4vw, 3rem);
+    font-size: clamp(1.875rem, 3.6vw, 2.875rem);
     line-height: 1;
-    letter-spacing: -0.038em;
+    letter-spacing: -0.042em;
   }
 
   .figure-row {
     font-family: theme('fontFamily.mono');
     font-variant-numeric: tabular-nums;
     font-weight: 600;
-    font-size: clamp(1.25rem, 2.5vw, 1.625rem);
+    font-size: clamp(1.25rem, 2.4vw, 1.5rem);
     line-height: 1.05;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.032em;
   }
 
   .figure-cell {
@@ -260,6 +245,29 @@
     font-size: 0.9375rem;
     line-height: 1.25;
     letter-spacing: -0.02em;
+  }
+
+  .movement {
+    font-family: theme('fontFamily.mono');
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    border: 1px solid transparent;
+  }
+
+  .movement[data-dir='up'] {
+    background-color: var(--ink);
+    color: var(--paper-leaf);
+  }
+
+  .movement[data-dir='down'] {
+    background-color: transparent;
+    border-color: var(--rule-strong);
+    color: var(--ink);
+  }
+
+  .movement[data-dir='flat'] {
+    background-color: var(--paper-band);
+    color: var(--ink-soft);
   }
 
   .prose-note {
@@ -302,7 +310,7 @@
   }
 
   .prose-note a {
-    color: var(--deposit);
+    color: var(--ink);
     text-decoration: underline;
   }
 
@@ -311,42 +319,58 @@
   }
 
   .row-invert {
-    background-color: var(--cover) !important;
-    color: var(--cover-ink) !important;
+    background-color: var(--ink) !important;
+    color: var(--paper-leaf) !important;
   }
 
   .row-invert th,
   .row-invert td,
   .row-invert time,
   .row-invert span:not(.movement) {
-    color: var(--cover-ink) !important;
+    color: var(--paper-leaf) !important;
   }
 
-  .row-invert .movement {
-    background-color: transparent !important;
+  .row-invert .movement span {
+    color: inherit !important;
   }
 
   .row-invert .movement[data-dir='up'] {
-    color: var(--deposit-on-cover) !important;
+    background-color: var(--paper-leaf) !important;
+    color: var(--ink) !important;
   }
 
   .row-invert .movement[data-dir='down'] {
-    color: var(--withdraw-on-cover) !important;
+    background-color: transparent !important;
+    border-color: rgba(250, 250, 248, 0.45) !important;
+    color: var(--paper-leaf) !important;
   }
 
-  .row-invert .movement[data-dir='flat'],
-  .row-invert .movement[data-dir='none'] {
-    color: var(--cover-ink) !important;
+  .row-invert .movement[data-dir='flat'] {
+    background-color: transparent !important;
+    color: var(--paper-leaf) !important;
+  }
+
+  .meter {
+    position: relative;
+    height: 0.375rem;
+    border-radius: 999px;
+    background-color: var(--paper-sunk);
+    overflow: hidden;
+  }
+
+  .meter > span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background-color: var(--ink);
+    border-radius: 999px;
   }
 
   .stagger > * {
-    animation: settle 0.42s cubic-bezier(0.16, 1, 0.3, 1) backwards;
-    animation-delay: calc(var(--row, 0) * 40ms);
+    animation: none;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .stagger > *,
   .animate-ink {
     animation: none !important;
   }

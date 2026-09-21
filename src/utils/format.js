@@ -1,5 +1,7 @@
+const DATE_ONLY = /T00:00:00(\.000)?Z$/;
+
 export const formatFigure = (value, locale, decimals) => {
-  if (value === null || value === undefined || !Number.isFinite(value)) return '—';
+  if (!Number.isFinite(value)) return '—';
   return new Intl.NumberFormat(locale, {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals
@@ -7,51 +9,54 @@ export const formatFigure = (value, locale, decimals) => {
 };
 
 export const formatDelta = (value, locale, decimals) => {
-  if (value === null || value === undefined || !Number.isFinite(value)) return null;
+  if (!Number.isFinite(value)) return null;
   const sign = value > 0 ? '+' : value < 0 ? '−' : '±';
-  const magnitude = new Intl.NumberFormat(locale, {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals
-  }).format(Math.abs(value));
-  return sign + magnitude;
+  return (
+    sign +
+    new Intl.NumberFormat(locale, {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
+    }).format(Math.abs(value))
+  );
 };
 
 export const formatPercent = (value, locale) => {
-  if (value === null || value === undefined || !Number.isFinite(value)) return null;
+  if (!Number.isFinite(value)) return null;
   const sign = value > 0 ? '+' : value < 0 ? '−' : '±';
-  const magnitude = new Intl.NumberFormat(locale, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(Math.abs(value));
-  return sign + magnitude + ' %';
+  return (
+    sign +
+    new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
+      Math.abs(value)
+    ) +
+    ' %'
+  );
 };
 
 export const formatCompact = (value, locale) => {
   if (!Number.isFinite(value)) return '—';
-  return new Intl.NumberFormat(locale, {
-    notation: 'compact',
-    maximumFractionDigits: 1
-  }).format(value);
+  return new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 1 }).format(
+    value
+  );
 };
 
 export const formatStamp = (iso, timezone) => {
-  if (!iso) return 'SIN REGISTRO';
+  if (!iso) return 'sin registro';
   const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return 'SIN REGISTRO';
-  return new Intl.DateTimeFormat('es', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-    timeZone: timezone || 'UTC'
-  })
-    .format(date)
-    .replace(/\./g, '')
-    .replace(/,\s*/g, ' ')
-    .toUpperCase();
+  if (Number.isNaN(date.getTime())) return 'sin registro';
+  const options = DATE_ONLY.test(iso)
+    ? { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' }
+    : {
+        day: '2-digit',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+        timeZone: timezone || 'UTC'
+      };
+  return new Intl.DateTimeFormat('es', options).format(date).replace(/\./g, '').replace(/,\s*/g, ' ');
 };
+
+export const isDateOnly = (iso) => Boolean(iso) && DATE_ONLY.test(iso);
 
 export const isoDate = (iso) => {
   if (!iso) return null;
@@ -59,21 +64,21 @@ export const isoDate = (iso) => {
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 };
 
+export const isoDay = (iso) => {
+  const full = isoDate(iso);
+  return full ? full.slice(0, 10) : null;
+};
+
 export const trendWord = (value) => {
-  if (value === null || value === undefined || !Number.isFinite(value) || value === 0)
-    return 'sin cambio';
-  return value > 0 ? 'sube' : 'baja';
+  if (!Number.isFinite(value) || value === 0) return 'sin cambio';
+  return value > 0 ? 'subió' : 'bajó';
 };
 
 export const formatDay = (iso) => {
   if (!iso) return '—';
   const date = new Date(iso + 'T00:00:00Z');
   if (Number.isNaN(date.getTime())) return '—';
-  return new Intl.DateTimeFormat('es', {
-    day: '2-digit',
-    month: 'short',
-    timeZone: 'UTC'
-  })
+  return new Intl.DateTimeFormat('es', { day: '2-digit', month: 'short', timeZone: 'UTC' })
     .format(date)
     .replace(/\./g, '');
 };

@@ -1,0 +1,10 @@
+---
+const { id, title, hint, meta, level = 'h2', tight = false } = Astro.props;
+const Tag = level;
+---
+
+<div class:list={['flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1', tight ? '' : 'mb-3']}>
+  <Tag id={id} class="text-[1.0625rem] font-bold" style="color: var(--ink)">{title}</Tag>
+  {meta && <p class="label" style="color: var(--ink-faint)">{meta}</p>}
+</div>
+{hint && <p class="hint max-w-note">{hint}</p>}

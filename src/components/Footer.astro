@@ -4,7 +4,11 @@ import { countryList } from '../utils/countries.js';
 const countries = countryList();
 const year = new Date().getFullYear();
 
-const legal = [
+const site = [
+  { href: '/metodologia', label: 'Cómo lo medimos' },
+  { href: '/notas', label: 'Notas' },
+  { href: '/api', label: 'API pública' },
+  { href: '/integraciones', label: 'Widget para tu web' },
   { href: '/acerca-de', label: 'Acerca de' },
   { href: '/privacidad', label: 'Privacidad' },
   { href: '/terminos', label: 'Términos' },
@@ -13,25 +17,26 @@ const legal = [
 ---
 
 <footer class="mt-16" style="background-color: var(--cover); color: var(--cover-ink)">
-  <div class="mx-auto max-w-shell px-4 py-12 sm:px-6 lg:px-8">
-    <div class="grid gap-10 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1fr)]">
+  <div class="mx-auto max-w-shell px-4 py-10 sm:px-6 lg:px-8">
+    <div class="grid gap-8 md:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1fr)]">
       <div>
-        <p class="text-[1rem] font-bold">Cambio Claro</p>
-        <p class="mt-3 max-w-note text-[0.9375rem] leading-relaxed opacity-80">
-          El precio del dólar en Latinoamérica, con el nombre de cada cotización y la hora en que fue
-          medida. Guardamos nuestro propio registro para que exista un histórico donde nadie lo publica.
+        <p class="text-[0.9375rem] font-bold">Cambio Claro</p>
+        <p class="mt-2.5 max-w-note text-[0.9375rem] leading-relaxed opacity-70">
+          El precio del dólar en Latinoamérica, con el nombre de cada cotización y la hora en que
+          fue medida. Guardamos nuestro propio registro para que exista un histórico donde nadie lo
+          publica.
         </p>
       </div>
 
       <nav aria-label="Países">
-        <p class="label opacity-60">Países</p>
-        <ul class="mt-4 grid grid-cols-2 gap-x-4 gap-y-2.5">
+        <p class="label opacity-50">Países</p>
+        <ul class="mt-3.5 grid grid-cols-2 gap-x-4 gap-y-2">
           {
             countries.map((country) => (
               <li>
                 <a
                   href={`/${country.code}/dolar-hoy`}
-                  class="text-[0.9375rem] no-underline opacity-85 transition-opacity duration-200 hover:opacity-100"
+                  class="text-[0.9375rem] no-underline opacity-80 transition-opacity duration-150 hover:opacity-100"
                 >
                   {country.name}
                 </a>
@@ -41,20 +46,15 @@ const legal = [
         </ul>
       </nav>
 
-      <div>
-        <p class="label opacity-60">El sitio</p>
-        <ul class="mt-4 space-y-2.5">
-          <li>
-            <a href="/notas" class="text-[0.9375rem] no-underline opacity-85 transition-opacity duration-200 hover:opacity-100">
-              Notas
-            </a>
-          </li>
+      <nav aria-label="El sitio">
+        <p class="label opacity-50">El sitio</p>
+        <ul class="mt-3.5 space-y-2">
           {
-            legal.map((item) => (
+            site.map((item) => (
               <li>
                 <a
                   href={item.href}
-                  class="text-[0.9375rem] no-underline opacity-85 transition-opacity duration-200 hover:opacity-100"
+                  class="text-[0.9375rem] no-underline opacity-80 transition-opacity duration-150 hover:opacity-100"
                 >
                   {item.label}
                 </a>
@@ -62,15 +62,15 @@ const legal = [
             ))
           }
         </ul>
-      </div>
+      </nav>
     </div>
 
     <div
-      class="mt-10 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-3 border-t pt-6"
-      style="border-color: rgba(242,234,214,0.2)"
+      class="mt-8 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-3 border-t pt-5"
+      style="border-color: rgba(250,250,248,0.18)"
     >
-      <p class="text-[0.8125rem] opacity-70">© {year} Cambio Claro</p>
-      <p class="max-w-note text-[0.8125rem] leading-relaxed opacity-70">
+      <p class="text-[0.8125rem] opacity-60">© {year} Cambio Claro</p>
+      <p class="max-w-note text-[0.8125rem] leading-relaxed opacity-60">
         Las cotizaciones son informativas y pueden diferir del precio que ofrece un banco o una casa
         de cambio. Este sitio no presta asesoramiento financiero.
       </p>

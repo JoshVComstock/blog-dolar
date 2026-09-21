@@ -1,0 +1,243 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SectionHeader from '../SectionHeader.astro';
+import DateStamp from '../DateStamp.astro';
+import Movement from '../Movement.astro';
+import AdSensePlaceholder from '../AdSensePlaceholder.astro';
+import CurrencyCalculator from '../CurrencyCalculator.astro';
+import P2PComparator from '../P2PComparator.astro';
+import { formatFigure, isoDate, formatLongDay } from '../../utils/format.js';
+import { variantSlug, variantAliases, variantExplainer } from '../../utils/variants.js';
+import { breadcrumb, faqPage, webPage, exchangeRate, speakable } from '../../utils/seo.js';
+
+const { board, rate } = Astro.props;
+const { country, rates, spread, measuredAt } = board;
+const { locale, decimals, symbol, name } = country;
+
+const canonical = `/${country.code}/${variantSlug(rate.key)}`;
+const aliases = variantAliases(rate.key);
+const price = (value) => `${symbol} ${formatFigure(value, locale, decimals)}`;
+
+const heading = `${rate.label} en ${name}`;
+const title = `${rate.label} hoy en ${name}: ${price(rate.sell)} | Cambio Claro`;
+const answer = `El ${rate.label.toLowerCase()} en ${name} está en ${price(rate.sell)} para la venta y ${price(rate.buy)} para la compra.`;
+const description = `${answer} Variación, conversor y comparación con las demás cotizaciones.`;
+
+const official = rates.find((item) => item.key === 'oficial');
+const others = rates.filter((item) => item.key !== rate.key);
+
+const gap =
+  official && official.key !== rate.key && official.sell
+    ? ((rate.sell - official.sell) / official.sell) * 100
+    : null;
+
+const faq = [
+  {
+    q: `¿A cuánto está el ${rate.label.toLowerCase()} hoy en ${name}?`,
+    a: `${answer} La hora exacta de la medición aparece junto al título.`
+  },
+  {
+    q: `¿Qué es el ${rate.label.toLowerCase()}?`,
+    a: variantExplainer(rate.key) || rate.note
+  },
+  aliases.length
+    ? {
+        q: `¿Es lo mismo que ${aliases[0]}?`,
+        a: `Sí. En ${name} a esta cotización también se le dice ${aliases.join(', ')}. Es el mismo precio con otro nombre.`
+      }
+    : null,
+  gap !== null
+    ? {
+        q: `¿Cuánto se separa del oficial?`,
+        a: `Hoy la diferencia es de ${gap.toFixed(1).replace('.', ',')} % frente al oficial de ${price(official.sell)}.`
+      }
+    : null
+].filter(Boolean);
+
+const jsonLd = [
+  webPage(title, description, canonical, measuredAt),
+  breadcrumb([
+    { name: 'Cambio Claro', path: '/' },
+    { name: `Dólar hoy en ${name}`, path: `/${country.code}/dolar-hoy` },
+    { name: heading, path: canonical }
+  ]),
+  faqPage(faq),
+  exchangeRate(country, rate, canonical),
+  speakable(canonical)
+];
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonical={canonical}
+  activeCountry={country.code}
+  lang={locale}
+  locale={`es_${country.code.toUpperCase()}`}
+  image={`/og/${country.code}.png`}
+  jsonLd={jsonLd}
+  modifiedTime={isoDate(measuredAt)}
+>
+  <div class="mx-auto max-w-shell px-4 py-7 sm:px-6 lg:px-8">
+    <nav aria-label="Ruta" class="stamp" style="color: var(--ink-faint)">
+      <a href="/" class="no-underline hover:underline">Cambio Claro</a>
+      <span aria-hidden="true"> / </span>
+      <a href={`/${country.code}/dolar-hoy`} class="no-underline hover:underline">
+        Dólar hoy en {name}
+      </a>
+    </nav>
+
+    <div class="mt-5 grid gap-7 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+      <article class="leaf spine overflow-hidden lg:col-start-1 lg:row-start-1">
+        <div
+          class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-2.5 sm:px-5"
+          style="background-color: var(--cover); color: var(--cover-ink)"
+        >
+          <p class="label" style="opacity: 0.72">{rate.label} · {country.currency}</p>
+          <DateStamp measuredAt={rate.updatedAt || measuredAt} timezone={country.timezone} tone="cover" />
+        </div>
+
+        <div class="px-4 py-6 sm:px-5">
+          <h1 class="text-[1.375rem] font-bold leading-tight" style="color: var(--ink)">
+            {heading} hoy
+          </h1>
+          <p
+            data-respuesta
+            class="mt-2.5 max-w-note text-[1.0625rem] font-semibold leading-snug"
+            style="color: var(--ink)"
+          >
+            {answer}
+          </p>
+
+          <div class="mt-6 grid gap-x-8 gap-y-6 sm:grid-cols-2">
+            <div>
+              <p class="label mb-2" style="color: var(--ink-faint)">Venta</p>
+              <p class="figure-pair flex items-baseline gap-1.5" style="color: var(--ink)">
+                <span class="text-[0.34em] font-semibold" style="color: var(--ink-faint)">
+                  {symbol}
+                </span>
+                {formatFigure(rate.sell, locale, decimals)}
+              </p>
+              <p class="mt-1.5 stamp" style="color: var(--ink-faint)">
+                lo que te cobran por un dólar
+              </p>
+              <div class="mt-3">
+                <Movement
+                  change={rate.change}
+                  changePct={rate.changePct}
+                  locale={locale}
+                  decimals={decimals}
+                />
+              </div>
+            </div>
+
+            <div>
+              <p class="label mb-2" style="color: var(--ink-faint)">Compra</p>
+              <p class="figure-pair flex items-baseline gap-1.5" style="color: var(--ink-soft)">
+                <span class="text-[0.34em] font-semibold" style="color: var(--ink-faint)">
+                  {symbol}
+                </span>
+                {formatFigure(rate.buy, locale, decimals)}
+              </p>
+              <p class="mt-1.5 stamp" style="color: var(--ink-faint)">
+                lo que te pagan por tu dólar
+              </p>
+            </div>
+          </div>
+
+          {
+            gap !== null && (
+              <div class="mt-6 rounded-[3px] px-4 py-3.5" style="background-color: var(--paper-band)">
+                <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <span class="label" style="color: var(--ink-faint)">Frente al oficial</span>
+                  <span class="figure text-[1.0625rem] font-bold" style="color: var(--ink)">
+                    {`${gap > 0 ? '+' : ''}${gap.toFixed(1).replace('.', ',')} %`}
+                  </span>
+                </div>
+                <p class="mt-1.5 text-[0.875rem] leading-relaxed" style="color: var(--ink-soft)">
+                  El oficial está en {price(official.sell)}.
+                </p>
+              </div>
+            )
+          }
+
+          <p class="mt-6 max-w-note text-[0.9375rem] leading-[1.7]" style="color: var(--ink-soft)">
+            {variantExplainer(rate.key)}
+          </p>
+
+          {
+            aliases.length > 0 && (
+              <p class="mt-3 max-w-note text-[0.9375rem] leading-[1.7]" style="color: var(--ink-faint)">
+                También se le dice {aliases.join(', ')}.
+              </p>
+            )
+          }
+        </div>
+      </article>
+
+      <aside class="min-w-0 space-y-6 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-5">
+        <CurrencyCalculator rates={rates} country={country} primaryKey={rate.key} />
+        <AdSensePlaceholder slot="rectangle" />
+      </aside>
+
+      <div class="min-w-0 space-y-7 lg:col-start-1 lg:row-start-2">
+        {rate.indicative && (
+          <P2PComparator rows={board.p2p} summary={board.p2pSummary} country={country} />
+        )}
+
+        {
+          others.length > 0 && (
+            <section aria-labelledby="otras" class="leaf-flat overflow-hidden">
+              <div class="px-4 pt-5 sm:px-5">
+                <SectionHeader
+                  id="otras"
+                  title={`Las demás cotizaciones de ${name}`}
+                  hint="Cada una tiene su propia página con la explicación completa."
+                />
+              </div>
+              <ul class="mt-4 border-t" style="border-color: var(--rule)">
+                {others.map((item) => (
+                  <li class="border-b" style="border-color: var(--rule)">
+                    <a
+                      href={variantSlug(item.key) ? `/${country.code}/${variantSlug(item.key)}` : `/${country.code}/dolar-hoy`}
+                      class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 px-4 py-3.5 no-underline transition-colors duration-150 hover:bg-[var(--paper-band)] sm:px-5"
+                    >
+                      <span class="text-[0.9375rem] font-semibold" style="color: var(--ink)">
+                        {item.label}
+                      </span>
+                      <span class="figure text-[1.0625rem] font-bold tracking-[-0.03em]" style="color: var(--ink)">
+                        {symbol} {formatFigure(item.sell, locale, decimals)}
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )
+        }
+
+        <section aria-labelledby="preguntas" class="rule-strong-top pt-5">
+          <SectionHeader
+            id="preguntas"
+            title="Preguntas frecuentes"
+            hint={`Actualizado el ${formatLongDay(isoDate(measuredAt) || new Date().toISOString())}.`}
+          />
+          <dl class="mt-3 max-w-note">
+            {
+              faq.map((item) => (
+                <div class="border-t py-4" style="border-color: var(--rule)">
+                  <dt class="text-[0.9375rem] font-bold leading-snug" style="color: var(--ink)">
+                    {item.q}
+                  </dt>
+                  <dd class="mt-2 text-[0.9375rem] leading-relaxed" style="color: var(--ink-soft)">
+                    {item.a}
+                  </dd>
+                </div>
+              ))
+            }
+          </dl>
+        </section>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

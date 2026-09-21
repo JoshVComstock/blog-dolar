@@ -1,4 +1,7 @@
 ---
+import Analytics from './Analytics.astro';
+import { SITE } from '../utils/site.js';
+
 const {
   title,
   description,
@@ -6,13 +9,16 @@ const {
   locale = 'es_419',
   type = 'website',
   jsonLd = [],
+  image = '/og/default.png',
   publishedTime,
   modifiedTime
 } = Astro.props;
 
-const site = Astro.site ? Astro.site.origin : 'https://cambioclaro.com';
+const site = Astro.site ? Astro.site.href.replace(/\/+$/, '') : SITE;
 const canonicalUrl = new URL(canonical, site).href;
-const schemas = Array.isArray(jsonLd) ? jsonLd.filter(Boolean) : [jsonLd].filter(Boolean);
+const imageUrl = new URL(image, site).href;
+const schemas = (Array.isArray(jsonLd) ? jsonLd : [jsonLd]).filter(Boolean);
+const verification = import.meta.env.PUBLIC_GSC_VERIFICATION || '';
 ---
 
 <meta charset="utf-8" />
@@ -24,8 +30,10 @@ const schemas = Array.isArray(jsonLd) ? jsonLd.filter(Boolean) : [jsonLd].filter
 <link rel="canonical" href={canonicalUrl} />
 
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
-<meta name="theme-color" content="#1b4636" media="(prefers-color-scheme: dark)" />
-<meta name="theme-color" content="#1e4d3b" media="(prefers-color-scheme: light)" />
+<meta name="color-scheme" content="light dark" />
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+<meta name="theme-color" content="#151514" media="(prefers-color-scheme: light)" />
+{verification && <meta name="google-site-verification" content={verification} />}
 
 <meta property="og:type" content={type} />
 <meta property="og:site_name" content="Cambio Claro" />
@@ -33,18 +41,23 @@ const schemas = Array.isArray(jsonLd) ? jsonLd.filter(Boolean) : [jsonLd].filter
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
 <meta property="og:url" content={canonicalUrl} />
+<meta property="og:image" content={imageUrl} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content={title} />
 {publishedTime && <meta property="article:published_time" content={publishedTime} />}
 {modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
 
-<meta name="twitter:card" content="summary" />
+<meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={title} />
 <meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={imageUrl} />
 
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-<link rel="alternate" type="application/xml" href="/sitemap-index.xml" />
+<link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
+<link rel="alternate" type="application/json" href="/api/v1/rates.json" title="Cotizaciones en JSON" />
+<link rel="alternate" type="application/rss+xml" href="/feed.xml" title="Cambio Claro — el dólar en Latinoamérica" />
 
-{
-  schemas.map((schema) => (
-    <script type="application/ld+json" set:html={JSON.stringify(schema)} />
-  ))
-}
+{schemas.map((schema) => <script type="application/ld+json" set:html={JSON.stringify(schema)} />)}
+
+<Analytics />

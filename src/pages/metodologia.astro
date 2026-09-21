@@ -1,0 +1,94 @@
+---
+import TextPage from '../layouts/TextPage.astro';
+import { firstRecordedDate, recordedSeriesCount } from '../utils/history.js';
+import { formatLongDay } from '../utils/format.js';
+import { breadcrumb, webPage, organization } from '../utils/seo.js';
+
+const canonical = '/metodologia';
+const title = 'Cómo medimos el precio del dólar | Cambio Claro';
+const description =
+  'Qué fuente usamos para cada cotización, cada cuánto la leemos, qué significa cada etiqueta y qué límites tiene cada cifra.';
+
+const since = firstRecordedDate();
+
+const jsonLd = [
+  webPage(title, description, canonical, new Date().toISOString()),
+  organization,
+  breadcrumb([
+    { name: 'Cambio Claro', path: '/' },
+    { name: 'Metodología', path: canonical }
+  ])
+];
+---
+
+<TextPage
+  title={title}
+  description={description}
+  canonical={canonical}
+  heading="Cómo medimos el precio del dólar"
+  lead="Publicar una cifra sin decir de dónde sale es la mitad del trabajo. Esta página es la otra mitad."
+  jsonLd={jsonLd}
+>
+  <h2>De dónde sale cada cotización</h2>
+  <p>
+    Las cotizaciones oficiales y de mercado vienen de <strong>dolarapi.com</strong> y sus dominios por
+    país. Para Perú, donde no hay endpoint, usamos <strong>open.er-api.com</strong>. El comparador de
+    plataformas de intercambio entre personas viene de <strong>criptoya.com</strong>.
+  </p>
+  <p>
+    En cada fila de la tabla está la fuente y la hora exacta de la medición, tal como la publica quien
+    la mide. Si una fuente devuelve una fecha sin hora, mostramos solo la fecha: preferimos un dato
+    incompleto y honesto antes que una hora inventada.
+  </p>
+
+  <h2>Cada cuánto se actualiza</h2>
+  <p>
+    El sitio se regenera cada veinte minutos. En cada regeneración leemos todas las fuentes y
+    guardamos la lectura del día en nuestro propio registro. Eso significa que el número que ves puede
+    tener hasta veinte minutos, nunca más: la hora que aparece en pantalla es la de la medición, no la
+    de tu visita.
+  </p>
+
+  <h2>El histórico que construimos</h2>
+  <p>
+    Para Argentina, Chile, Colombia, México y Perú existen series históricas públicas y las usamos.
+    Para Bolivia, Uruguay y Venezuela no existe ninguna, así que guardamos nuestra propia lectura cada
+    día.
+    {since && ` Nuestro registro empieza el ${formatLongDay(since)} y ya cubre ${recordedSeriesCount()} series.`}
+    Es un archivo que crece solo y que no publica nadie más.
+  </p>
+
+  <h2>Qué significa cada etiqueta</h2>
+  <ul>
+    <li><strong>Oficial</strong>: lo fija o publica la autoridad monetaria del país. Rige las operaciones bancarias reguladas.</li>
+    <li><strong>Paralelo</strong> y <strong>blue</strong>: se forman en el mercado informal. No los publica ninguna entidad oficial.</li>
+    <li><strong>Paralelo digital</strong>: referencia construida con operaciones de intercambio digital entre personas.</li>
+    <li><strong>Indicativa</strong>: la cifra sirve para orientarse, nunca para liquidar una obligación.</li>
+    <li><strong>Compra</strong>: lo que te pagan por tu dólar. <strong>Venta</strong>: lo que te cobran por dártelo.</li>
+  </ul>
+
+  <h2>Qué no hacemos</h2>
+  <p>
+    No rellenamos huecos. Si una fuente no responde al generar la página, lo decimos y dejamos el
+    espacio vacío, porque un dato viejo presentado como actual es peor que ningún dato. Tampoco
+    promediamos cotizaciones de naturaleza distinta para inventar un número más redondo.
+  </p>
+  <p>
+    Nada de lo que publicamos es asesoramiento financiero. El precio final de una operación real
+    depende de comisiones, márgenes e impuestos del operador con el que trates.
+  </p>
+
+  <h2>Usar nuestros datos</h2>
+  <p>
+    Publicamos todo en <a href="/api/v1/rates.json">/api/v1/rates.json</a>, en JSON, sin clave y con
+    licencia CC BY 4.0. Cada país tiene además su propio endpoint, por ejemplo
+    <a href="/api/v1/bo/rates.json">/api/v1/bo/rates.json</a>, con las cotizaciones, las plataformas y
+    la serie histórica que llevamos. Si lo usas, cita la fuente.
+  </p>
+
+  <h2>Corregir un error</h2>
+  <p>
+    Si ves una cifra que no cuadra, escríbenos desde <a href="/contacto">contacto</a> con el país y la
+    hora que aparecía en pantalla. Se corrige y se explica.
+  </p>
+</TextPage>

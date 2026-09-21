@@ -3,6 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import AdSensePlaceholder from '../../components/AdSensePlaceholder.astro';
 import { formatLongDay } from '../../utils/format.js';
 import { getCollection } from 'astro:content';
+import { SITE } from '../../utils/site.js';
 
 const notes = (await getCollection('notas')).sort((a, b) => (a.data.fecha < b.data.fecha ? 1 : -1));
 
@@ -23,7 +24,7 @@ const jsonLd = [
       headline: note.data.titulo,
       description: note.data.resumen,
       datePublished: note.data.fecha,
-      url: `https://cambioclaro.com/notas/${note.id}`
+      url: `${SITE}/notas/${note.id}`
     }))
   }
 ];

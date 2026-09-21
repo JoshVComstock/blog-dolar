@@ -1,0 +1,41 @@
+name: refrescar cotizaciones
+
+on:
+  schedule:
+    - cron: '*/20 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: refrescar
+  cancel-in-progress: false
+
+jobs:
+  grabar:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run record
+
+      - name: guardar el historial
+        run: |
+          git config user.name "cambio-claro-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add data/history.json
+          git diff --staged --quiet || git commit -m "historial $(date -u +'%Y-%m-%d %H:%M')"
+          git push
+
+      - name: pedir un despliegue nuevo
+        if: env.DEPLOY_HOOK != ''
+        env:
+          DEPLOY_HOOK: ${{ secrets.DEPLOY_HOOK }}
+        run: curl -fsS -X POST "$DEPLOY_HOOK"

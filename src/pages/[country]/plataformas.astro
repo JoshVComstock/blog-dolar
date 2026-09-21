@@ -1,0 +1,147 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SectionHeader from '../../components/SectionHeader.astro';
+import DateStamp from '../../components/DateStamp.astro';
+import P2PComparator from '../../components/P2PComparator.astro';
+import CurrencyCalculator from '../../components/CurrencyCalculator.astro';
+import AdSensePlaceholder from '../../components/AdSensePlaceholder.astro';
+import { fetchAllBoards, fetchBoard } from '../../utils/api.js';
+import { formatFigure, isoDate, formatLongDay } from '../../utils/format.js';
+import { breadcrumb, faqPage, webPage, speakable } from '../../utils/seo.js';
+
+export async function getStaticPaths() {
+  const light = await fetchAllBoards({ series: false, p2p: false, fx: false });
+  const boards = await Promise.all(
+    light.map((board) => fetchBoard(board.country.code, { series: false, fx: false }))
+  );
+  return boards
+    .filter((board) => board.p2p.length > 1)
+    .map((board) => ({ params: { country: board.country.code }, props: { board } }));
+}
+
+const { board } = Astro.props;
+const { country, rates, p2pSummary: summary, measuredAt } = board;
+const { locale, decimals, symbol, name } = country;
+
+const canonical = `/${country.code}/plataformas`;
+const price = (value) => `${symbol} ${formatFigure(value, locale, decimals)}`;
+
+const title = `Dónde comprar dólares más barato en ${name}: ${price(summary.min)} | Cambio Claro`;
+const answer = `Hoy el dólar más barato entre las plataformas de ${name} está en ${price(summary.min)} en ${summary.cheapest.label}, y el más caro en ${price(summary.max)} en ${summary.dearest.label}.`;
+const description = `${answer} Comparador de ${summary.count} plataformas actualizado con la hora de cada medición.`;
+
+const faq = [
+  {
+    q: `¿Dónde está más barato el dólar en ${name} hoy?`,
+    a: `${answer} La diferencia de punta a punta es de ${formatFigure(summary.gap, locale, decimals)}, un ${summary.gapPct.toFixed(1).replace('.', ',')} %.`
+  },
+  {
+    q: '¿Qué es una plataforma P2P?',
+    a: 'Es un mercado donde dos personas acuerdan el precio y la plataforma solo retiene el dinero hasta que ambas confirman. Por eso el precio se mueve solo, sin que ninguna entidad lo fije.'
+  },
+  {
+    q: '¿El precio de la lista es el que voy a pagar?',
+    a: 'Es el mejor precio publicado en ese momento para una operación estándar. El final depende del método de pago, del monto y de la comisión de cada plataforma.'
+  },
+  {
+    q: '¿Cada cuánto se actualiza?',
+    a: 'Releemos las plataformas cada veinte minutos. La hora de la última lectura aparece al pie del comparador.'
+  }
+];
+
+const jsonLd = [
+  webPage(title, description, canonical, measuredAt),
+  breadcrumb([
+    { name: 'Cambio Claro', path: '/' },
+    { name: `Dólar hoy en ${name}`, path: `/${country.code}/dolar-hoy` },
+    { name: 'Plataformas', path: canonical }
+  ]),
+  faqPage(faq),
+  speakable(canonical)
+];
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonical={canonical}
+  activeCountry={country.code}
+  lang={locale}
+  locale={`es_${country.code.toUpperCase()}`}
+  image={`/og/${country.code}.png`}
+  jsonLd={jsonLd}
+  modifiedTime={isoDate(measuredAt)}
+>
+  <div class="mx-auto max-w-shell px-4 py-7 sm:px-6 lg:px-8">
+    <nav aria-label="Ruta" class="stamp" style="color: var(--ink-faint)">
+      <a href="/" class="no-underline hover:underline">Cambio Claro</a>
+      <span aria-hidden="true"> / </span>
+      <a href={`/${country.code}/dolar-hoy`} class="no-underline hover:underline">
+        Dólar hoy en {name}
+      </a>
+    </nav>
+
+    <div class="mt-5 grid gap-7 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+      <article class="leaf spine overflow-hidden lg:col-start-1 lg:row-start-1">
+        <div
+          class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-2.5 sm:px-5"
+          style="background-color: var(--cover); color: var(--cover-ink)"
+        >
+          <p class="label" style="opacity: 0.72">{summary.count} plataformas · {country.currency}</p>
+          <DateStamp measuredAt={summary.updatedAt || measuredAt} timezone={country.timezone} tone="cover" />
+        </div>
+
+        <div class="px-4 py-6 sm:px-5">
+          <h1 class="text-[1.375rem] font-bold leading-tight" style="color: var(--ink)">
+            Dónde comprar dólares en {name}
+          </h1>
+          <p
+            data-respuesta
+            class="mt-2.5 max-w-note text-[1.0625rem] font-semibold leading-snug"
+            style="color: var(--ink)"
+          >
+            {answer}
+          </p>
+          <p class="mt-4 max-w-note text-[0.9375rem] leading-[1.7]" style="color: var(--ink-soft)">
+            Comparamos el precio de venta del USDT en las plataformas de intercambio entre personas
+            que operan en {name}. Es la referencia que mueve el mercado paralelo, porque es donde
+            de verdad se cruzan la oferta y la demanda cuando el canal oficial no alcanza.
+          </p>
+        </div>
+      </article>
+
+      <aside class="min-w-0 space-y-6 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-5">
+        {board.available && (
+          <CurrencyCalculator rates={rates} country={country} primaryKey={board.primary.key} />
+        )}
+        <AdSensePlaceholder slot="rectangle" />
+      </aside>
+
+      <div class="min-w-0 space-y-7 lg:col-start-1 lg:row-start-2">
+        <P2PComparator rows={board.p2p} summary={summary} country={country} />
+
+        <section aria-labelledby="preguntas" class="rule-strong-top pt-5">
+          <SectionHeader
+            id="preguntas"
+            title="Preguntas frecuentes"
+            hint={`Actualizado el ${formatLongDay(isoDate(measuredAt) || new Date().toISOString())}.`}
+          />
+          <dl class="mt-3 max-w-note">
+            {
+              faq.map((item) => (
+                <div class="border-t py-4" style="border-color: var(--rule)">
+                  <dt class="text-[0.9375rem] font-bold leading-snug" style="color: var(--ink)">
+                    {item.q}
+                  </dt>
+                  <dd class="mt-2 text-[0.9375rem] leading-relaxed" style="color: var(--ink-soft)">
+                    {item.a}
+                  </dd>
+                </div>
+              ))
+            }
+          </dl>
+        </section>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

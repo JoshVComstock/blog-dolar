@@ -8,44 +8,46 @@ const countries = countryList();
 
 <header style="background-color: var(--cover); color: var(--cover-ink)">
   <div class="mx-auto max-w-shell px-4 sm:px-6 lg:px-8">
-    <div class="flex items-center justify-between gap-4 py-3.5">
-      <a href="/" class="group inline-flex items-center gap-2.5 no-underline">
-        <span
-          class="grid h-8 w-8 place-items-center rounded-[7px] text-[0.8125rem] font-bold"
-          style="background-color: var(--cover-ink); color: var(--cover)"
-          aria-hidden="true">CC</span
-        >
-        <span class="flex flex-col leading-none">
-          <span class="text-[0.9375rem] font-bold tracking-tight">Cambio Claro</span>
-          <span class="mt-1 text-[0.6875rem] opacity-70">El dólar en Latinoamérica</span>
+    <div class="flex items-center justify-between gap-4 py-3">
+      <a href="/" class="inline-flex items-baseline gap-2.5 no-underline">
+        <span class="text-[0.9375rem] font-bold tracking-tight">Cambio Claro</span>
+        <span class="hidden text-[0.75rem] opacity-60 sm:inline">
+          precio del dólar, país por país
         </span>
       </a>
 
       <div class="flex items-center gap-1">
         <a
-          href="/notas"
-          class="hidden rounded-lg px-3 py-2 text-[0.8125rem] font-semibold no-underline transition-colors duration-200 hover:bg-white/10 sm:inline-block"
-          >Notas</a
+          href="/metodologia"
+          class="hidden rounded-[2px] px-2.5 py-1.5 text-[0.8125rem] font-semibold no-underline opacity-75 transition-opacity duration-200 hover:opacity-100 sm:inline-block"
         >
+          Cómo lo medimos
+        </a>
+        <a
+          href="/notas"
+          class="hidden rounded-[2px] px-2.5 py-1.5 text-[0.8125rem] font-semibold no-underline opacity-75 transition-opacity duration-200 hover:opacity-100 sm:inline-block"
+        >
+          Notas
+        </a>
         <ThemeToggle />
       </div>
     </div>
   </div>
 
-  <nav aria-label="Países" class="border-t" style="border-color: rgba(242,234,214,0.16)">
+  <nav aria-label="Países" class="border-t" style="border-color: rgba(250,250,248,0.14)">
     <div class="mx-auto max-w-shell px-4 sm:px-6 lg:px-8">
-      <ul class="scroll-fade flex gap-1 overflow-x-auto py-2 pr-10 lg:pr-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <ul class="scroll-fade flex gap-0.5 overflow-x-auto py-1.5 pr-8 lg:pr-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {
           countries.map((country) => (
             <li class="shrink-0">
               <a
                 href={`/${country.code}/dolar-hoy`}
                 aria-current={active === country.code ? 'page' : undefined}
-                class="block rounded-lg px-3 py-1.5 text-[0.8125rem] font-semibold no-underline transition-colors duration-200"
+                class="block rounded-[2px] px-2.5 py-1.5 text-[0.8125rem] font-semibold no-underline transition-opacity duration-200"
                 style={
                   active === country.code
                     ? 'background-color: var(--cover-ink); color: var(--cover)'
-                    : 'color: var(--cover-ink); opacity: 0.78'
+                    : 'color: var(--cover-ink); opacity: 0.68'
                 }
               >
                 {country.name}

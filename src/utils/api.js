@@ -1,8 +1,8 @@
 import { COUNTRIES, COUNTRY_CODES } from './countries.js';
-import { readOwnSeries } from './history.js';
+import { readOwnSeries, previousValue } from './history.js';
+import { fetchP2P, p2pSummary } from './p2p.js';
+import { fetchUsdRates } from './fx.js';
 
-const DOLAR_API = 'https://dolarapi.com/v1/';
-const COUNTRIES_API = 'https://restcountries.com/v3.1/alpha/';
 const FX_FALLBACK = 'https://open.er-api.com/v6/latest/USD';
 const TIMEOUT = 12000;
 const SERIES_DAYS = 180;
@@ -34,7 +34,7 @@ export const fetchJson = async (url, headers) => {
 };
 
 const RATE_ENDPOINTS = {
-  ar: DOLAR_API + 'dolares',
+  ar: 'https://dolarapi.com/v1/dolares',
   bo: 'https://bo.dolarapi.com/v1/dolares',
   ve: 'https://ve.dolarapi.com/v1/dolares',
   cl: 'https://cl.dolarapi.com/v1/cotizaciones',
@@ -58,6 +58,7 @@ const VARIANT_LABELS = {
 };
 
 const VARIANT_NOTES = {
+  oficial: 'Lo fija o publica la autoridad monetaria y rige las operaciones bancarias.',
   blue: 'Mercado informal, sin respaldo regulatorio.',
   paralelo: 'Promedio de operaciones informales, sin respaldo institucional.',
   binance: 'Referencia de intercambio digital entre personas.',
@@ -78,18 +79,16 @@ const toNumber = (value) => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
-const normalizeKey = (entry) => {
-  const raw = String(entry.casa || entry.fuente || '').toLowerCase();
-  if (raw) return raw;
-  return 'mercado';
-};
+const today = () => new Date().toISOString().slice(0, 10);
 
 const normalizeEntry = (entry, code) => {
-  const key = normalizeKey(entry);
+  const key = String(entry.casa || entry.fuente || 'mercado').toLowerCase();
   const sell = toNumber(entry.venta) ?? toNumber(entry.promedio) ?? toNumber(entry.fix);
-  const buy = toNumber(entry.compra) ?? toNumber(entry.promedio) ?? sell;
   if (sell === null) return null;
-  const previous = toNumber(entry.ultimoCierre);
+
+  const buy = toNumber(entry.compra) ?? toNumber(entry.promedio) ?? sell;
+  const previous = toNumber(entry.ultimoCierre) ?? previousValue(code, key, today());
+
   return {
     key,
     label: VARIANT_LABELS[key] || entry.nombre || 'Referencia',
@@ -109,6 +108,9 @@ const fromFallbackFx = async (country) => {
   const payload = await withMemo('fx-fallback', () => fetchJson(FX_FALLBACK));
   const rate = payload && payload.rates ? toNumber(payload.rates[country.currency]) : null;
   if (rate === null) return [];
+
+  const previous = previousValue(country.code, 'referencia', today());
+
   return [
     {
       key: 'referencia',
@@ -116,9 +118,9 @@ const fromFallbackFx = async (country) => {
       note: 'Promedio internacional de cierre, no es una cotización de mostrador.',
       buy: rate,
       sell: rate,
-      previous: null,
-      change: null,
-      changePct: null,
+      previous,
+      change: previous !== null ? rate - previous : null,
+      changePct: previous !== null && previous !== 0 ? ((rate - previous) / previous) * 100 : null,
       updatedAt: payload.time_last_update_utc
         ? new Date(payload.time_last_update_utc).toISOString()
         : null,
@@ -131,6 +133,7 @@ const fromFallbackFx = async (country) => {
 export const fetchRates = async (code) => {
   const country = COUNTRIES[code];
   if (!country) return [];
+
   const endpoint = RATE_ENDPOINTS[code];
   if (!endpoint) return fromFallbackFx(country);
 
@@ -143,39 +146,6 @@ export const fetchRates = async (code) => {
     .filter(Boolean);
 
   return entries.length ? entries : fromFallbackFx(country);
-};
-
-export const fetchCountryProfile = async (code) => {
-  const country = COUNTRIES[code];
-  if (!country) return null;
-  const key = import.meta.env.RESTCOUNTRIES_KEY || process.env.restcountries || '';
-  const fields = 'name,cca2,cca3,capital,population,region,subregion,languages,area';
-  const payload = await withMemo('profile-' + code, () =>
-    fetchJson(
-      COUNTRIES_API + code + '?fields=' + fields,
-      key ? { 'X-Api-Key': key } : undefined
-    )
-  );
-  const record = Array.isArray(payload) ? payload[0] : payload;
-
-  if (!record || !record.capital) {
-    return Object.assign({}, country.fallbackProfile, {
-      live: false,
-      source: 'referencia local'
-    });
-  }
-
-  return {
-    capital: Array.isArray(record.capital) ? record.capital.join(', ') : record.capital,
-    region: record.subregion || record.region || country.fallbackProfile.region,
-    languages: record.languages
-      ? Object.values(record.languages).join(', ')
-      : country.fallbackProfile.languages,
-    population: toNumber(record.population) ?? country.fallbackProfile.population,
-    area: toNumber(record.area) ?? country.fallbackProfile.area,
-    live: true,
-    source: 'restcountries.com'
-  };
 };
 
 const SPANISH_MONTHS = {
@@ -203,8 +173,7 @@ const seriesLoaders = {
     };
   },
   cl: async () => {
-    const year = new Date().getUTCFullYear();
-    const payload = await fetchJson('https://mindicador.cl/api/dolar/' + year);
+    const payload = await fetchJson('https://mindicador.cl/api/dolar/' + new Date().getUTCFullYear());
     if (!payload || !Array.isArray(payload.serie)) return null;
     return {
       source: 'mindicador.cl',
@@ -239,9 +208,7 @@ const seriesLoaders = {
     const stamp = (date) => date.toISOString().slice(0, 10);
     const payload = await fetchJson(
       'https://estadisticas.bcrp.gob.pe/estadisticas/series/api/PD04640PD/json/' +
-        stamp(from) +
-        '/' +
-        stamp(to)
+        stamp(from) + '/' + stamp(to)
     );
     if (!payload || !Array.isArray(payload.periods)) return null;
     const points = payload.periods
@@ -262,11 +229,7 @@ const seriesLoaders = {
     const from = new Date(to.getTime() - SERIES_DAYS * 86400000);
     const stamp = (date) => date.toISOString().slice(0, 10);
     const payload = await fetchJson(
-      'https://api.frankfurter.dev/v1/' +
-        stamp(from) +
-        '..' +
-        stamp(to) +
-        '?base=USD&symbols=MXN'
+      'https://api.frankfurter.dev/v1/' + stamp(from) + '..' + stamp(to) + '?base=USD&symbols=MXN'
     );
     if (!payload || !payload.rates) return null;
     return {
@@ -307,6 +270,8 @@ const computeSpread = (rates) => {
   if (!official || !parallel || !official.sell) return null;
   return {
     label: parallel.label,
+    official: official.sell,
+    parallel: parallel.sell,
     value: ((parallel.sell - official.sell) / official.sell) * 100
   };
 };
@@ -314,21 +279,33 @@ const computeSpread = (rates) => {
 export const fetchBoard = async (code, options) => {
   const country = COUNTRIES[code];
   if (!country) return null;
-  const withSeries = !options || options.series !== false;
-  const [rates, profile] = await Promise.all([fetchRates(code), fetchCountryProfile(code)]);
+
+  const settings = options || {};
+  const wantsSeries = settings.series !== false;
+  const wantsP2P = settings.p2p !== false;
+  const wantsFx = settings.fx !== false;
+
+  const [rates, p2pRows, fx] = await Promise.all([
+    fetchRates(code),
+    wantsP2P
+      ? withMemo('p2p-' + code, () => fetchP2P(country.currency, fetchJson))
+      : Promise.resolve([]),
+    wantsFx ? withMemo('fx-cross', () => fetchUsdRates(fetchJson)) : Promise.resolve(null)
+  ]);
+
   const primary = pickPrimary(code, rates);
-  const stamps = rates
-    .map((rate) => rate.updatedAt)
-    .filter(Boolean)
-    .sort();
-  const series = withSeries && primary ? await fetchSeries(code, primary.key) : null;
+  const stamps = rates.map((rate) => rate.updatedAt).filter(Boolean).sort();
+  const series = wantsSeries && primary ? await fetchSeries(code, primary.key) : null;
 
   return {
     country,
     rates,
     primary,
-    profile,
+    profile: Object.assign({}, country.fallbackProfile),
     series,
+    p2p: p2pRows,
+    p2pSummary: p2pSummary(p2pRows),
+    fx,
     spread: computeSpread(rates),
     available: Boolean(primary),
     measuredAt: stamps.length ? stamps[stamps.length - 1] : null

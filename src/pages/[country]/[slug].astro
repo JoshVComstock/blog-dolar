@@ -1,0 +1,155 @@
+---
+import ConversionPage from '../../components/pages/ConversionPage.astro';
+import VariantPage from '../../components/pages/VariantPage.astro';
+import { fetchAllBoards } from '../../utils/api.js';
+import { formatFigure } from '../../utils/format.js';
+import { AMOUNTS, forwardSlug, reverseSlug, PLURALS, READABLE, SINGULAR } from '../../utils/amounts.js';
+import { CROSS_CODES, crossInfo, crossSlug, crossRate } from '../../utils/fx.js';
+import { variantSlug } from '../../utils/variants.js';
+
+export async function getStaticPaths() {
+  const boards = await fetchAllBoards({ series: false, p2p: true, fx: true });
+  const paths = [];
+
+  for (const board of boards) {
+    const { code, currency } = board.country;
+
+    for (const amount of AMOUNTS) {
+      paths.push({
+        params: { country: code, slug: forwardSlug(amount, currency) },
+        props: { board, kind: 'conversion', amount, direction: 'usd-local' }
+      });
+      paths.push({
+        params: { country: code, slug: reverseSlug(amount, currency) },
+        props: { board, kind: 'conversion', amount, direction: 'local-usd' }
+      });
+    }
+
+    if (board.fx) {
+      for (const code3 of CROSS_CODES) {
+        if (code3 === currency || !board.fx.rates[code3]) continue;
+        paths.push({
+          params: { country: code, slug: crossSlug(code3, currency, PLURALS) },
+          props: { board, kind: 'conversion', amount: 1, direction: 'cross', foreign: code3 }
+        });
+      }
+    }
+
+    for (const rate of board.rates) {
+      const slug = variantSlug(rate.key);
+      if (!slug) continue;
+      paths.push({
+        params: { country: code, slug },
+        props: { board, kind: 'variant', variantKey: rate.key }
+      });
+    }
+  }
+
+  return paths;
+}
+
+const { board, kind, amount, direction, foreign, variantKey } = Astro.props;
+const { country } = board;
+const { locale, decimals, symbol, currency, name } = country;
+
+const rate = kind === 'variant' ? board.rates.find((item) => item.key === variantKey) : null;
+
+const money = READABLE[currency];
+const one = SINGULAR[currency];
+const amountText = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(amount || 1);
+
+const plans = {
+  'usd-local': () => ({
+    direction,
+    amount,
+    canonical: `/${country.code}/${forwardSlug(amount, currency)}`,
+    heading: `${amountText} dólares a ${money}`,
+    unitFrom: 'dólares',
+    unitTo: money,
+    pairLabel: `USD → ${currency}`,
+    symbolIn: 'US$',
+    symbolOut: symbol,
+    decimalsOut: decimals,
+    sideLabel: 'precio de compra',
+    rateLabel: `Se aplica el precio de compra: lo que una casa de cambio o plataforma te paga por cada dólar en ${name}.`,
+    intro: null,
+    appliedFor: (item) => item.buy || item.sell,
+    convert: (value, applied) => value * applied,
+    rateLine: (applied) => `1 USD = ${formatFigure(applied, locale, decimals)} ${currency}`,
+    siblingSlug: (value) => forwardSlug(value, currency)
+  }),
+  'local-usd': () => ({
+    direction,
+    amount,
+    canonical: `/${country.code}/${reverseSlug(amount, currency)}`,
+    heading: `${amountText} ${money} a dólares`,
+    unitFrom: money,
+    unitTo: 'dólares',
+    pairLabel: `${currency} → USD`,
+    symbolIn: symbol,
+    symbolOut: 'US$',
+    decimalsOut: 2,
+    sideLabel: 'precio de venta',
+    rateLabel: `Se aplica el precio de venta: lo que te cobran por cada dólar cuando entregas ${money}.`,
+    intro: null,
+    appliedFor: (item) => item.sell || item.buy,
+    convert: (value, applied) => value / applied,
+    rateLine: (applied) => `1 USD = ${formatFigure(applied, locale, decimals)} ${currency}`,
+    siblingSlug: (value) => reverseSlug(value, currency)
+  }),
+  cross: () => {
+    const info = crossInfo(foreign);
+    const perUsd = board.fx.rates[foreign];
+    const sample = board.primary
+      ? crossRate(perUsd, board.primary.buy || board.primary.sell)
+      : null;
+    const small = Number.isFinite(sample) && sample < 1;
+    return {
+      direction,
+      amount: small ? 1000 : 1,
+      canonical: `/${country.code}/${crossSlug(foreign, currency, PLURALS)}`,
+      heading: small
+        ? `1000 ${info.plural} a ${money}`
+        : `${info.name.charAt(0).toUpperCase()}${info.name.slice(1)} a ${one}`,
+      title: small
+        ? `1000 ${info.plural} a ${money}`
+        : `${info.name.charAt(0).toUpperCase()}${info.name.slice(1)} a ${one}`,
+      question: small
+        ? `¿Cuánto son 1000 ${info.plural} en ${money} hoy?`
+        : `¿Cuánto vale un ${info.name} en ${money} hoy?`,
+      rowsTitle: small
+        ? `Mil ${info.plural} en cada cotización`
+        : `Un ${info.name} en cada cotización`,
+      answer: (value, label) =>
+        small
+          ? `Mil ${info.plural} equivalen a ${value} al cambio ${label} de ${name}.`
+          : `Un ${info.name} equivale a ${value} al cambio ${label} de ${name}.`,
+      unitFrom: info.plural,
+      unitTo: money,
+      pairLabel: `${foreign} → ${currency}`,
+      symbolIn: info.symbol,
+      symbolOut: symbol,
+      decimalsOut: decimals,
+      quickAmounts: small ? [100, 500, 1000, 5000, 10000, 50000] : [1, 10, 50, 100, 500, 1000],
+      sideLabel: 'cambio cruzado',
+      rateLabel: `No existe un mercado directo ${foreign}/${currency}. El precio se calcula cruzando ${foreign}/USD con el dólar de ${name}, que es exactamente como lo hace un operador real.`,
+      intro: `Nadie cotiza el ${info.name} contra el ${one} de forma directa. Lo calculamos cruzando el tipo de cambio ${foreign}/USD con el precio del dólar en ${name}, así que el resultado refleja el mercado real y no la tasa oficial internacional. Es la conversión que importa para ${info.reason}.`,
+      appliedFor: (item) => crossRate(perUsd, item.buy || item.sell),
+      convert: (value, applied) => value * applied,
+      rateLine: (applied) =>
+        small
+          ? `1000 ${foreign} = ${formatFigure(applied * 1000, locale, decimals)} ${currency}`
+          : `1 ${foreign} = ${formatFigure(applied, locale, decimals)} ${currency}`,
+      siblingSlug: null
+    };
+  }
+};
+---
+
+{
+  kind === 'variant' && rate ? (
+    <VariantPage board={board} rate={rate} />
+  ) : (
+    <ConversionPage board={board} plan={plans[direction]()} />
+  )
+}

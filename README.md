@@ -1,8 +1,9 @@
 # Cambio Claro
 
-Sitio estático del precio del dólar en ocho países de Latinoamérica, construido con Astro (SSG), una isla de React y Tailwind CSS. Incluye histórico, calculadora y notas.
+Precio del dólar oficial y paralelo en ocho países de Latinoamérica. Astro en modo estático, sin
+framework de UI, con comparador de plataformas P2P, calculadora, histórico propio y API pública.
 
-## Puesta en marcha
+## Poner en marcha
 
 ```bash
 npm install
@@ -14,80 +15,80 @@ npm run build
 npm run preview
 ```
 
-Las cotizaciones se leen **en tiempo de compilación**. Para mantenerlas frescas hay que reconstruir el sitio de forma periódica (un cron en Netlify, Vercel, Cloudflare Pages o GitHub Actions cada 30–60 minutos es suficiente).
+## Lanzar
+
+1. **Repositorio**
+
+   ```bash
+   git init
+   git add .
+   git commit -m "Cambio Claro"
+   git branch -M main
+   git remote add origin git@github.com:USUARIO/cambio-claro.git
+   git push -u origin main
+   ```
+
+2. **Vercel** — importar el repo. Framework: Astro. Sin configuración extra: `vercel.json` ya trae
+   `cleanUrls` y las cabeceras de la API.
+
+3. **Variables de entorno** en Vercel (copiar de `.env.example`):
+
+   | Variable | Para qué |
+   |---|---|
+   | `PUBLIC_SITE_URL` | **La única obligatoria.** El dominio final, sin barra al final. De ahí salen el canonical, el sitemap, `robots.txt`, `llms.txt`, el schema y las URLs de la API. Cambiar de dominio es cambiar esta variable y volver a desplegar |
+   | `PUBLIC_GSC_VERIFICATION` | El valor del `content` que da Google Search Console al verificar por etiqueta HTML |
+   | `PUBLIC_GA_ID` | El ID de Google Analytics 4, con formato `G-XXXXXXXXXX` |
+   | `PUBLIC_ADSENSE_CLIENT` | El `pub-…` de AdSense. Mientras esté vacío no se renderiza ningún bloque de publicidad |
+
+4. **Search Console**
+   - Añadir la propiedad por dominio o por prefijo de URL.
+   - Verificar con etiqueta HTML: pegar el `content` en `PUBLIC_GSC_VERIFICATION` y desplegar.
+   - Enviar `https://cambioclaro.com/sitemap-index.xml`.
+
+5. **Refresco automático**
+   - En Vercel: Settings → Git → Deploy Hooks, crear uno para `main`.
+   - En GitHub: Settings → Secrets → Actions, guardar la URL como `DEPLOY_HOOK`.
+   - `.github/workflows/refrescar.yml` corre cada veinte minutos, graba la lectura en
+     `data/history.json` y dispara el despliegue.
 
 ## Fuentes de datos
 
-Cotización del día:
+| Qué | Fuente | Clave |
+|---|---|---|
+| Cotizaciones AR, BO, VE, CL, CO, MX, UY | `dolarapi.com` | no |
+| Cotización PE | `open.er-api.com` | no |
+| Plataformas P2P (comparador) | `criptoya.com/api/USDT/{moneda}/1` | no |
+| Serie histórica AR | `api.argentinadatos.com` | no |
+| Serie histórica CL | `mindicador.cl` | no |
+| Serie histórica CO | `datos.gov.co` recurso `32sa-8pi3` | no |
+| Serie histórica PE | `estadisticas.bcrp.gob.pe` | no |
+| Serie histórica MX | `api.frankfurter.dev` | no |
+| Serie histórica BO, UY, VE | registro propio en `data/history.json` | — |
 
-| País | Endpoint |
-|---|---|
-| Argentina | `dolarapi.com/v1/dolares` — 7 cotizaciones |
-| Bolivia | `bo.dolarapi.com/v1/dolares` — oficial + paralelo digital |
-| Venezuela | `ve.dolarapi.com/v1/dolares` — oficial + paralelo |
-| Chile, Colombia, México, Uruguay | `{cc}.dolarapi.com/v1/cotizaciones` |
-| Perú | `open.er-api.com` (dolarapi no tiene endpoint peruano) |
-
-Histórico (gratis, sin clave, verificado el 6-9-2026):
-
-| País | Fuente |
-|---|---|
-| Argentina | `api.argentinadatos.com` — serie desde 2011 |
-| Chile | `mindicador.cl` |
-| Colombia | `datos.gov.co` recurso `32sa-8pi3` (TRM) |
-| Perú | `estadisticas.bcrp.gob.pe` |
-| México | `api.frankfurter.dev` |
-| Bolivia, Uruguay, Venezuela | **no existe ninguna** |
-
-### Nuestro propio registro
-
-Para los tres países sin fuente histórica, el proyecto graba su propia lectura. `scripts/record-history.mjs` corre en el `prebuild` y añade la cotización del día a `data/history.json`, que se versiona con el repositorio.
-
-Ese archivo **es un activo del proyecto**: cuanto más seguido se reconstruya el sitio, más densa queda la serie. En el caso del dólar paralelo boliviano no existe en ningún otro lado.
-
-```bash
-npm run record
-```
-
-### restcountries
-
-El endpoint del brief original ya no funciona sin clave. Hay una clave en `.env` bajo `restcountries`, pero ninguno de los nueve esquemas de autenticación probados fue aceptado por el proveedor. Hasta resolverlo, la ficha de cada país usa una tabla de referencia local, declarada en pantalla como `FUENTE REFERENCIA LOCAL`.
+`scripts/record-history.mjs` corre en el `prebuild` y en el cron. Guarda la cotización del día y,
+además, el promedio y el mínimo de las plataformas P2P (`{código}:p2p` y `{código}:p2p-min`).
 
 ## Rutas
 
 - `/` portada con los ocho países
-- `/{ar,bo,cl,co,mx,pe,uy,ve}/dolar-hoy`
-- `/notas` y `/notas/{slug}`
-- `/acerca-de`, `/privacidad`, `/terminos`, `/contacto`
-- `/404`, `sitemap-index.xml`, `robots.txt`, `ads.txt`
+- `/{país}/dolar-hoy`
+- `/{país}/dolar-paralelo` — solo Bolivia, Argentina y Venezuela
+- `/{país}/{monto}-dolares-a-{moneda}` — 12 montos por país
+- `/metodologia`, `/notas`, `/notas/{slug}`
+- `/api/v1/rates.json` y `/api/v1/{país}/rates.json` — JSON público, CC BY 4.0
 
-## AdSense
+## Decisiones
 
-Los huecos son inertes: `AdSensePlaceholder.astro` no carga ningún script. Acepta `slot` (`horizontal`, `rectangle`, `inline`), `client` y `unit`, y los expone como `data-*` en el DOM.
+- **Sin React.** La calculadora y el comparador son JavaScript plano en la propia página; se
+  comunican por el evento `cc:amount`. El sitio no envía ningún framework al navegador.
+- **El dominio no está quemado en ningún sitio.** Todo sale de `PUBLIC_SITE_URL` a través de
+  `src/utils/site.js`. `robots.txt` y `llms.txt` son endpoints generados, no archivos estáticos.
+- **`trailingSlash: 'never'` con `build.format: 'file'`.** El canonical, el sitemap y la URL servida
+  coinciden. En un host que no sea Vercel hay que activar su equivalente de `cleanUrls`.
+- **Sin `restcountries`.** La ficha de país sale de la tabla local de `src/utils/countries.js`.
+- **El cierre de ayer sale de `data/history.json`** cuando la fuente no publica `ultimoCierre`.
 
-Antes de solicitar la cuenta hace falta:
+## Imágenes para compartir
 
-1. Poner el identificador real en `public/ads.txt` (hoy tiene un marcador).
-2. Completar el correo en `/contacto`.
-3. Ampliar `/privacidad` con la sección de cookies de Google cuando los anuncios se activen.
-4. Añadir un banner de consentimiento si esperas tráfico europeo.
-5. Publicar más notas: el contenido original propio es lo que más pesa en la aprobación.
-
-## Modo oscuro
-
-Clase `dark` en `<html>`, aplicada por un script en línea antes del primer pintado, así que no hay parpadeo. Respeta `prefers-color-scheme` y guarda la elección manual en `localStorage` bajo `cc-theme`. El tema claro no es una inversión: tiene sus propios tokens en `src/styles/ledger.css`.
-
-## Reglas del proyecto
-
-- Cero comentarios en el código.
-- Astro estático salvo una isla: `CurrencyCalculator.jsx` con `client:load`. Sin `useEffect`.
-- Toda cifra declara a qué cotización pertenece, a qué hora fue medida y qué lado del spread aplica.
-- Si una fuente no responde, la página lo dice en vez de mostrar un valor viejo.
-- Verde y rojo nunca son el único indicio: siempre hay flecha y porcentaje con signo.
-
-## Pendiente antes de publicar
-
-1. Dominio y nombre definitivos. Cambiar `site` en `astro.config.mjs`, las URLs absolutas del JSON-LD, `robots.txt` y los textos de marca. "Cambio Claro" es provisional.
-2. Correo de contacto real.
-3. Reconstrucción periódica (cada 15–30 min) para mantener frescura y engordar el histórico propio.
-4. Identificador de AdSense.
+`public/og/{país}.png` y `public/og/default.png`, 1200×630. Se regeneran a mano; no dependen del
+build.

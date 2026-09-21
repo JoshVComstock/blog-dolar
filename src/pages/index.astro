@@ -1,13 +1,16 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import SectionHeader from '../components/SectionHeader.astro';
 import CountryCard from '../components/CountryCard.astro';
 import DateStamp from '../components/DateStamp.astro';
 import AdSensePlaceholder from '../components/AdSensePlaceholder.astro';
 import { fetchAllBoards } from '../utils/api.js';
 import { isoDate } from '../utils/format.js';
 import { getCollection } from 'astro:content';
+import { breadcrumb, faqPage, webPage, website, organization } from '../utils/seo.js';
+import { SITE } from '../utils/site.js';
 
-const boards = await fetchAllBoards({ series: false });
+const boards = await fetchAllBoards({ series: false, p2p: false });
 const stamps = boards.map((board) => board.measuredAt).filter(Boolean).sort();
 const measuredAt = stamps.length ? stamps[stamps.length - 1] : null;
 const withParallel = boards.filter((board) => board.country.hasParallel);
@@ -18,12 +21,12 @@ const notes = (await getCollection('notas'))
 
 const title = 'Dólar hoy en Latinoamérica — precio por país | Cambio Claro';
 const description =
-  'Precio del dólar en Bolivia, Argentina, Venezuela, Colombia, México, Perú, Chile y Uruguay. Oficial y paralelo, calculadora de conversión e histórico.';
+  'Precio del dólar en Bolivia, Argentina, Venezuela, Colombia, México, Perú, Chile y Uruguay. Oficial y paralelo, comparador de plataformas, calculadora e histórico.';
 
 const faq = [
   {
     q: '¿Cada cuánto se actualizan los precios?',
-    a: 'El sitio se regenera de forma periódica y toma los datos en ese momento. La hora exacta de cada medición aparece junto a la cifra, en la columna Medido.'
+    a: 'El sitio se regenera cada veinte minutos y toma los datos en ese momento. La hora exacta de cada medición aparece junto a la cifra, en la columna Medido.'
   },
   {
     q: '¿Cuál es la diferencia entre el dólar oficial y el paralelo?',
@@ -35,19 +38,19 @@ const faq = [
   },
   {
     q: '¿De dónde salen los datos?',
-    a: 'Las cotizaciones vienen de dolarapi.com y de open.er-api.com. El histórico viene de fuentes públicas de cada país y, donde no existe ninguna, de nuestro propio registro diario. Cada página indica la fuente que usó.'
+    a: 'Las cotizaciones vienen de dolarapi.com y open.er-api.com; el comparador de plataformas, de criptoya.com. El histórico viene de fuentes públicas de cada país y, donde no existe ninguna, de nuestro propio registro diario. Está todo detallado en la página de metodología.'
+  },
+  {
+    q: '¿Puedo usar estos datos en mi propio sitio?',
+    a: 'Sí. Publicamos una API pública en /api/v1/rates.json, en JSON, sin clave y con licencia CC BY 4.0. Solo pedimos que cites la fuente.'
   }
 ];
 
 const jsonLd = [
-  {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: 'Cambio Claro',
-    url: 'https://cambioclaro.com',
-    inLanguage: 'es',
-    description
-  },
+  website(description),
+  organization,
+  webPage(title, description, '/', measuredAt),
+  breadcrumb([{ name: 'Cambio Claro', path: '/' }]),
   {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
@@ -57,18 +60,10 @@ const jsonLd = [
       '@type': 'ListItem',
       position: index + 1,
       name: `Dólar hoy en ${board.country.name}`,
-      url: `https://cambioclaro.com/${board.country.code}/dolar-hoy`
+      url: `${SITE}/${board.country.code}/dolar-hoy`
     }))
   },
-  {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: faq.map((item) => ({
-      '@type': 'Question',
-      name: item.q,
-      acceptedAnswer: { '@type': 'Answer', text: item.a }
-    }))
-  }
+  faqPage(faq)
 ];
 ---
 
@@ -80,98 +75,95 @@ const jsonLd = [
   modifiedTime={isoDate(measuredAt)}
 >
   <div class="mx-auto max-w-shell px-4 sm:px-6 lg:px-8">
-    <section aria-labelledby="portada" class="py-10 md:py-14">
-      <div class="flex flex-wrap items-start justify-between gap-x-8 gap-y-5">
+    <section aria-labelledby="portada" class="py-9 md:py-12">
+      <div class="flex flex-wrap items-start justify-between gap-x-8 gap-y-4">
         <div>
           <h1
             id="portada"
-            class="max-w-[16ch] text-[clamp(2rem,5vw,3.25rem)] font-bold leading-[1.04]"
+            class="max-w-[16ch] text-[clamp(1.875rem,4.6vw,2.875rem)] font-bold leading-[1.06]"
             style="color: var(--ink)"
           >
             El dólar hoy en Latinoamérica
           </h1>
-          <p class="mt-4 max-w-note text-[1.0625rem] leading-relaxed" style="color: var(--ink-soft)">
+          <p class="mt-3.5 max-w-note text-[1.0625rem] leading-relaxed" style="color: var(--ink-soft)">
             Ocho países, cada cotización con su nombre y la hora en que fue medida. Donde hay dólar
             paralelo, lo verás al lado del oficial.
           </p>
         </div>
-        <DateStamp measuredAt={measuredAt} timezone="UTC" tone="paper" />
+        <DateStamp measuredAt={measuredAt} timezone={null} tone="paper" prefix="Última medición" />
       </div>
     </section>
 
     <section aria-labelledby="tablero" class="leaf overflow-hidden">
       <h2 id="tablero" class="sr-only">Precio del dólar por país</h2>
-      <div class="band flex items-center gap-x-6 px-4 py-2.5 sm:px-6">
-        <p class="label min-w-[8.5rem] flex-1 sm:flex-none" style="color: var(--ink-faint)">País</p>
-        <p class="label hidden flex-1 sm:block" style="color: var(--ink-faint)">Precio de venta y variación</p>
+      <div class="band flex items-center gap-x-6 px-4 py-2 sm:px-5">
+        <p class="label min-w-[8rem] flex-1 sm:flex-none" style="color: var(--ink-faint)">País</p>
+        <p class="label hidden flex-1 sm:block" style="color: var(--ink-faint)">
+          Precio de venta y variación
+        </p>
       </div>
-      <div class="stagger divide-y" style="border-color: var(--rule)">
-        {boards.map((board, index) => <CountryCard board={board} index={index} />)}
+      <div class="ruled">
+        {boards.map((board) => <CountryCard board={board} />)}
       </div>
     </section>
 
     {
       withParallel.length > 0 && (
-        <p class="mt-4 text-[0.875rem] leading-relaxed" style="color: var(--ink-faint)">
+        <p class="mt-3.5 text-[0.875rem] leading-relaxed" style="color: var(--ink-faint)">
           {withParallel.map((board) => board.country.name).join(', ')} tienen mercado paralelo, así
           que en su fila verás dos precios y la brecha entre ellos.
         </p>
       )
     }
 
-    <div class="mt-12">
+    <div class="mt-10">
       <AdSensePlaceholder slot="horizontal" />
     </div>
 
-    <div class="mt-14 grid gap-8 lg:grid-cols-2">
+    <div class="mt-12 grid gap-7 lg:grid-cols-2">
       <section aria-labelledby="preguntas" class="leaf-flat overflow-hidden">
-        <h2 id="preguntas" class="px-4 pt-5 text-[1.0625rem] font-bold sm:px-6" style="color: var(--ink)">
-          Preguntas frecuentes
-        </h2>
-        <div class="mt-3">
+        <div class="px-4 pt-5 sm:px-5">
+          <SectionHeader
+            id="preguntas"
+            title="Preguntas frecuentes"
+            hint="Lo que casi todo el mundo pregunta antes de cambiar plata."
+          />
+        </div>
+        <dl class="mt-3">
           {
             faq.map((item) => (
-              <details class="group border-t px-4 py-4 sm:px-6" style="border-color: var(--rule)">
-                <summary
-                  class="flex cursor-pointer list-none items-start justify-between gap-4 text-[0.9375rem] font-semibold leading-snug"
-                  style="color: var(--ink)"
-                >
+              <div class="border-t px-4 py-4 sm:px-5" style="border-color: var(--rule)">
+                <dt class="text-[0.9375rem] font-bold leading-snug" style="color: var(--ink)">
                   {item.q}
-                  <span
-                    class="mt-0.5 shrink-0 transition-transform duration-300 ease-settle group-open:rotate-45"
-                    style="color: var(--ink-faint)"
-                    aria-hidden="true"
-                  >
-                    <svg width="15" height="15" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-                      <path d="M7 1.5v11M1.5 7h11" />
-                    </svg>
-                  </span>
-                </summary>
-                <p class="mt-2.5 text-[0.9375rem] leading-relaxed" style="color: var(--ink-soft)">
+                </dt>
+                <dd class="mt-2 text-[0.9375rem] leading-relaxed" style="color: var(--ink-soft)">
                   {item.a}
-                </p>
-              </details>
+                </dd>
+              </div>
             ))
           }
-        </div>
+        </dl>
       </section>
 
       <section aria-labelledby="notas" class="leaf-flat overflow-hidden">
-        <div class="flex items-baseline justify-between gap-4 px-4 pt-5 sm:px-6">
-          <h2 id="notas" class="text-[1.0625rem] font-bold" style="color: var(--ink)">
-            Notas
-          </h2>
-          <a href="/notas" class="label no-underline" style="color: var(--deposit)">Ver todas</a>
+        <div class="flex items-baseline justify-between gap-4 px-4 pt-5 sm:px-5">
+          <SectionHeader
+            id="notas"
+            title="Notas"
+            hint="Cómo funciona el mercado cambiario, explicado sin jerga."
+            tight
+          />
+          <a href="/notas" class="label no-underline" style="color: var(--ink-faint)">Ver todas</a>
         </div>
-        <div class="mt-3">
+        <div class="mt-4">
           {
             notes.map((note) => (
               <a
                 href={`/notas/${note.id}`}
-                class="block border-t px-4 py-4 no-underline transition-colors duration-200 hover:bg-[var(--paper-band)] sm:px-6"
+                class="block border-t px-4 py-4 no-underline transition-colors duration-150 hover:bg-[var(--paper-band)] sm:px-5"
                 style="border-color: var(--rule)"
               >
-                <p class="text-[0.9375rem] font-semibold leading-snug" style="color: var(--ink)">
+                <p class="text-[0.9375rem] font-bold leading-snug" style="color: var(--ink)">
                   {note.data.titulo}
                 </p>
                 <p class="mt-1.5 text-[0.875rem] leading-relaxed" style="color: var(--ink-faint)">
@@ -184,7 +176,35 @@ const jsonLd = [
       </section>
     </div>
 
-    <div class="mt-14">
+    <section aria-labelledby="api" class="mt-12 rule-strong-top pt-5">
+      <SectionHeader
+        id="api"
+        title="Los datos son públicos"
+        hint="Si quieres usar estas cotizaciones en tu propio proyecto, hay un JSON abierto, sin clave y con licencia CC BY 4.0."
+      />
+      <div class="mt-4 flex flex-wrap gap-2">
+        <a
+          href="/api/v1/rates.json"
+          class="inline-block rounded-[2px] border px-3 py-2 figure text-[0.8125rem] font-semibold no-underline transition-opacity duration-150 hover:opacity-70"
+          style="border-color: var(--rule-strong); color: var(--ink)"
+        >
+          /api/v1/rates.json
+        </a>
+        {
+          boards.map((board) => (
+            <a
+              href={`/api/v1/${board.country.code}/rates.json`}
+              class="inline-block rounded-[2px] border px-3 py-2 figure text-[0.8125rem] no-underline transition-opacity duration-150 hover:opacity-70"
+              style="border-color: var(--rule); color: var(--ink-soft)"
+            >
+              /{board.country.code}
+            </a>
+          ))
+        }
+      </div>
+    </section>
+
+    <div class="mt-12">
       <AdSensePlaceholder slot="inline" />
     </div>
   </div>

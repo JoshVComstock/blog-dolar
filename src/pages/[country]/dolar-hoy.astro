@@ -1,21 +1,39 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import SectionHeader from '../../components/SectionHeader.astro';
 import DateStamp from '../../components/DateStamp.astro';
 import Movement from '../../components/Movement.astro';
 import RateLedger from '../../components/RateLedger.astro';
+import P2PComparator from '../../components/P2PComparator.astro';
 import HistoryChart from '../../components/HistoryChart.astro';
 import CountryFacts from '../../components/CountryFacts.astro';
 import CountryCard from '../../components/CountryCard.astro';
 import AdSensePlaceholder from '../../components/AdSensePlaceholder.astro';
-import CurrencyCalculator from '../../components/CurrencyCalculator.jsx';
+import CurrencyCalculator from '../../components/CurrencyCalculator.astro';
 import { getCollection } from 'astro:content';
 import { fetchAllBoards, fetchBoard } from '../../utils/api.js';
-import { formatFigure, isoDate } from '../../utils/format.js';
+import { formatFigure, isoDate, formatLongDay } from '../../utils/format.js';
+import { firstRecordedDate } from '../../utils/history.js';
+import { AMOUNTS, forwardSlug, reverseSlug, READABLE, PLURALS } from '../../utils/amounts.js';
+import { variantSlug } from '../../utils/variants.js';
+import { CROSS_CODES, crossInfo, crossSlug } from '../../utils/fx.js';
+import {
+  breadcrumb,
+  faqPage,
+  exchangeRate,
+  dataset,
+  webPage,
+  answerSentence,
+  priceTitle,
+  stampShort,
+  speakable
+} from '../../utils/seo.js';
 
 export async function getStaticPaths() {
-  const light = await fetchAllBoards({ series: false });
+  const light = await fetchAllBoards({ series: false, p2p: false, fx: false });
   const boards = await Promise.all(light.map((board) => fetchBoard(board.country.code)));
   const notes = (await getCollection('notas')).sort((a, b) => (a.data.fecha < b.data.fecha ? 1 : -1));
+
   return boards.map((board) => ({
     params: { country: board.country.code },
     props: {
@@ -34,17 +52,48 @@ const parallel = rates.find((rate) => rate.indicative && rate.key !== 'oficial')
 const pair = country.hasParallel && official && parallel ? [official, parallel] : null;
 
 const canonical = `/${country.code}/dolar-hoy`;
-const title = `Dólar hoy en ${country.name} — precio oficial y paralelo | Cambio Claro`;
+const answer = answerSentence(country, primary, official, parallel, spread);
+const stamp = stampShort(measuredAt, country.timezone);
+
+const title = available
+  ? `${priceTitle(country, official, parallel, primary)} | Cambio Claro`
+  : `Dólar hoy en ${country.name} — cotización y tipo de cambio | Cambio Claro`;
+
 const description = available
-  ? `Precio del dólar en ${country.name}: ${country.symbol} ${formatFigure(primary.sell, country.locale, country.decimals)} (${primary.label.toLowerCase()}). Calculadora, histórico y todas las cotizaciones.`
+  ? `${answer}${stamp ? ` Lectura ${stamp}.` : ''} Comparador de plataformas, conversor e histórico.`
   : `Precio del dólar en ${country.name}, calculadora de conversión a ${country.currencyName.toLowerCase()} y contexto del mercado cambiario.`;
+
+const featured = [100, 500, 1000].filter((amount) => AMOUNTS.includes(amount));
+
+const variantLinks = rates
+  .map((rate) => ({ rate, slug: variantSlug(rate.key) }))
+  .filter((item) => item.slug);
+
+const crossLinks = board.fx
+  ? CROSS_CODES.filter((code) => code !== country.currency && board.fx.rates[code]).map((code) => ({
+      code,
+      info: crossInfo(code),
+      href: `/${country.code}/${crossSlug(code, country.currency, PLURALS)}`
+    }))
+  : [];
+
+const cities = {
+  bo: ['Santa Cruz', 'La Paz', 'Cochabamba', 'El Alto', 'Sucre', 'Tarija'],
+  ar: ['Buenos Aires', 'Córdoba', 'Rosario', 'Mendoza'],
+  ve: ['Caracas', 'Maracaibo', 'Valencia'],
+  co: ['Bogotá', 'Medellín', 'Cali'],
+  mx: ['Ciudad de México', 'Monterrey', 'Guadalajara'],
+  pe: ['Lima', 'Arequipa', 'Trujillo'],
+  cl: ['Santiago', 'Valparaíso', 'Concepción'],
+  uy: ['Montevideo', 'Punta del Este', 'Salto']
+}[country.code] || [];
 
 const faq = [
   {
     q: `¿A cuánto está el dólar hoy en ${country.name}?`,
     a: available
-      ? `La cotización ${primary.label.toLowerCase()} está en ${country.symbol} ${formatFigure(primary.sell, country.locale, country.decimals)} por dólar para la venta. La hora exacta de la medición aparece arriba, en el sello de fecha.`
-      : `Ahora mismo la fuente no devolvió una cotización para ${country.name}. La página se regenera cada vez que el sitio se actualiza.`
+      ? `${answer} La hora exacta de la medición aparece arriba, junto al título.`
+      : `Ahora mismo la fuente no devolvió una cotización para ${country.name}.`
   },
   {
     q: `¿Cuántos tipos de dólar hay en ${country.name}?`,
@@ -52,55 +101,49 @@ const faq = [
   },
   {
     q: `¿Cómo convierto dólares a ${country.currencyName.toLowerCase()}?`,
-    a: 'Escribe el monto en la calculadora de esta página. Al cambiar la cantidad se recalculan todas las cotizaciones a la vez, así puedes comparar cuánto recibes en cada mercado.'
+    a: `Escribe el monto en la calculadora de esta página. Al cambiar la cantidad se recalculan todas las cotizaciones a la vez, así puedes comparar cuánto recibes en cada mercado. Para montos comunes también tenemos páginas listas, como 100 dólares a ${READABLE[country.currency]}.`
   },
+  {
+    q: `¿Cada cuánto se actualiza el precio?`,
+    a: 'Tomamos la lectura cada vez que el sitio se regenera, cada veinte minutos, y guardamos el valor del día en nuestro propio registro. La hora de cada medición está siempre a la vista.'
+  },
+  parallel
+    ? {
+        q: `¿A cuánto está el dólar blue en ${country.name}?`,
+        a: `«Dólar blue» es el nombre argentino del dólar informal, y en ${country.name} se usa para referirse al ${parallel.label.toLowerCase()}. Hoy está en ${country.symbol} ${formatFigure(parallel.sell, country.locale, country.decimals)} para la venta.`
+      }
+    : null,
+  {
+    q: `¿Cómo se calcula el precio del dólar paralelo?`,
+    a: 'No lo fija nadie: sale de promediar operaciones reales entre personas en plataformas de intercambio. Publicamos el precio de venta de cada plataforma y su promedio, con la hora de la lectura.'
+  },
+  cities.length
+    ? {
+        q: `¿El dólar está al mismo precio en ${cities.slice(0, 3).join(', ')}?`,
+        a: `La referencia que ves aquí es la misma para todo el país, porque se forma en plataformas digitales que no distinguen ciudad. Lo que sí cambia de una ciudad a otra es el margen que aplica cada casa de cambio de mostrador, que suele ser mayor fuera de ${cities[0]}.`
+      }
+    : null,
   {
     q: `¿Sube o baja el dólar en ${country.name}?`,
     a: series
       ? `Puedes verlo en el gráfico de esta página, construido con ${series.points.length} lecturas de ${series.source}.`
-      : 'Todavía no tenemos suficientes lecturas registradas para mostrar la tendencia de este país. El gráfico aparece solo en cuanto haya historial.'
+      : 'Todavía no tenemos suficientes lecturas registradas para mostrar la tendencia de este país. El gráfico aparece en cuanto haya historial.'
   }
-];
+].filter(Boolean);
 
 const jsonLd = [
-  {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Cambio Claro', item: 'https://cambioclaro.com' },
-      {
-        '@type': 'ListItem',
-        position: 2,
-        name: `Dólar hoy en ${country.name}`,
-        item: `https://cambioclaro.com${canonical}`
-      }
-    ]
-  },
-  {
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: faq.map((item) => ({
-      '@type': 'Question',
-      name: item.q,
-      acceptedAnswer: { '@type': 'Answer', text: item.a }
-    }))
-  }
+  webPage(title, description, canonical, measuredAt),
+  breadcrumb([
+    { name: 'Cambio Claro', path: '/' },
+    { name: `Dólar hoy en ${country.name}`, path: canonical }
+  ]),
+  faqPage(faq),
+  dataset(country, canonical, measuredAt, firstRecordedDate())
 ];
 
-if (available) {
-  jsonLd.push({
-    '@context': 'https://schema.org',
-    '@type': 'ExchangeRateSpecification',
-    name: `Dólar estadounidense a ${country.currencyName}`,
-    currency: 'USD',
-    currentExchangeRate: {
-      '@type': 'UnitPriceSpecification',
-      price: Number(primary.sell.toFixed(country.decimals)),
-      priceCurrency: country.currency
-    },
-    exchangeRateSpread: spread ? Number(spread.value.toFixed(2)) : undefined
-  });
-}
+jsonLd.push(speakable(canonical));
+
+if (available) jsonLd.push(exchangeRate(country, primary, canonical));
 ---
 
 <BaseLayout
@@ -108,136 +151,138 @@ if (available) {
   description={description}
   canonical={canonical}
   activeCountry={country.code}
+  lang={country.locale}
+  locale={`es_${country.code.toUpperCase()}`}
+  image={`/og/${country.code}.png`}
   jsonLd={jsonLd}
   modifiedTime={isoDate(measuredAt)}
 >
-  <div class="mx-auto max-w-shell px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
-    <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_21rem] lg:items-start xl:gap-10">
-        <article class="leaf spine overflow-hidden lg:col-start-1 lg:row-start-1">
-          <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-3 sm:px-6" style="background-color: var(--cover); color: var(--cover-ink)">
-            <p class="label" style="opacity: 0.82">
-              {profile && profile.capital ? profile.capital.split(',')[0] : country.name} ·
-              {' '}{country.currency}
-            </p>
-            <DateStamp measuredAt={measuredAt} timezone={country.timezone} tone="cover" />
-          </div>
+  <div class="mx-auto max-w-shell px-4 py-7 sm:px-6 lg:px-8">
+    <div class="grid gap-7 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+      <article class="leaf spine overflow-hidden lg:col-start-1 lg:row-start-1">
+        <div
+          class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-2.5 sm:px-5"
+          style="background-color: var(--cover); color: var(--cover-ink)"
+        >
+          <p class="label" style="opacity: 0.72">
+            {country.name} · {country.currency}
+          </p>
+          <DateStamp measuredAt={measuredAt} timezone={country.timezone} tone="cover" />
+        </div>
 
-          <div class="ruled-paper px-4 py-7 sm:px-6 sm:py-8" style="--rule-step: 2.75rem; --rule-offset: 1.4rem">
-            <h1 class="text-[1.375rem] font-bold leading-tight" style="color: var(--ink)">
-              Dólar hoy en {country.name}
-            </h1>
+        <div class="px-4 py-6 sm:px-5">
+          <h1 class="text-[1.375rem] font-bold leading-tight" style="color: var(--ink)">
+            Dólar hoy en {country.name}
+          </h1>
+          <p
+            data-respuesta
+            class="mt-2.5 max-w-note text-[1.0625rem] font-semibold leading-snug"
+            style="color: var(--ink)"
+          >
+            {answer}
+          </p>
 
-            {
-              available && pair ? (
-                <div class="mt-7 grid gap-x-10 gap-y-7 sm:grid-cols-2">
-                  {pair.map((rate) => (
-                    <div class="min-w-0">
-                      <p class="label mb-2.5" style={rate.key === primary.key ? 'color: var(--deposit)' : 'color: var(--ink-faint)'}>
-                        {rate.label}
-                        {rate.indicative ? ' · indicativa' : ''}
-                      </p>
-                      <p class="figure-pair flex items-baseline gap-1.5" style="color: var(--ink)">
-                        <span class="text-[0.34em] font-semibold" style="color: var(--ink-faint)">
-                          {country.symbol}
-                        </span>
-                        {formatFigure(rate.sell, country.locale, country.decimals)}
-                      </p>
-                      <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-                        <Movement
-                          change={rate.change}
-                          changePct={rate.changePct}
-                          locale={country.locale}
-                          decimals={country.decimals}
-                        />
-                        <span class="figure-cell" style="color: var(--ink-faint)">
-                          compra {formatFigure(rate.buy, country.locale, country.decimals)}
-                        </span>
-                      </div>
+          {
+            available && pair ? (
+              <div class="mt-6 grid gap-x-8 gap-y-6 sm:grid-cols-2">
+                {pair.map((rate) => (
+                  <div class="min-w-0">
+                    <p class="label mb-2" style="color: var(--ink-faint)">
+                      {rate.label}
+                      {rate.indicative ? ' · indicativa' : ''}
+                    </p>
+                    <p class="figure-pair flex items-baseline gap-1.5" style="color: var(--ink)">
+                      <span class="text-[0.34em] font-semibold" style="color: var(--ink-faint)">
+                        {country.symbol}
+                      </span>
+                      {formatFigure(rate.sell, country.locale, country.decimals)}
+                    </p>
+                    <p class="mt-1.5 stamp" style="color: var(--ink-faint)">
+                      venta · lo que te cobran por un dólar
+                    </p>
+                    <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+                      <Movement
+                        change={rate.change}
+                        changePct={rate.changePct}
+                        locale={country.locale}
+                        decimals={country.decimals}
+                      />
+                      <span class="figure-cell" style="color: var(--ink-faint)">
+                        compra {formatFigure(rate.buy, country.locale, country.decimals)}
+                      </span>
                     </div>
-                  ))}
-                </div>
-              ) : available ? (
-                <div class="mt-7">
-                  <p class="label mb-2.5" style="color: var(--deposit)">
-                    {primary.label}
-                  </p>
-                  <p class="figure-balance flex items-baseline gap-2" style="color: var(--ink)">
-                    <span class="text-[0.3em] font-semibold" style="color: var(--ink-faint)">
-                      {country.symbol}
-                    </span>
-                    {formatFigure(primary.sell, country.locale, country.decimals)}
-                  </p>
-                  <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
-                    <Movement
-                      change={primary.change}
-                      changePct={primary.changePct}
-                      locale={country.locale}
-                      decimals={country.decimals}
-                    />
-                    <span class="figure-cell" style="color: var(--ink-faint)">
-                      compra {formatFigure(primary.buy, country.locale, country.decimals)} · venta{' '}
-                      {formatFigure(primary.sell, country.locale, country.decimals)}
-                    </span>
                   </div>
-                </div>
-              ) : (
-                <div class="mt-6">
-                  <p class="figure-row" style="color: var(--ink-faint)">
-                    <span aria-hidden="true">— —</span>
-                  </p>
-                  <p class="mt-4 max-w-note text-[1rem] leading-relaxed" style="color: var(--ink-soft)">
-                    Ninguna fuente devolvió una cotización para {country.name} al generar esta página.
-                    No mostramos un valor anterior, porque un dato viejo presentado como actual es peor
-                    que ningún dato.
-                  </p>
-                </div>
-              )
-            }
-
-            {
-              spread && (
-                <div
-                  class="mt-7 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl px-4 py-3.5"
-                  style="background-color: var(--paper-band)"
-                >
-                  <span class="label" style="color: var(--ink-faint)">
-                    Brecha
+                ))}
+              </div>
+            ) : available ? (
+              <div class="mt-6">
+                <p class="label mb-2" style="color: var(--ink-faint)">
+                  {primary.label}
+                </p>
+                <p class="figure-balance flex items-baseline gap-2" style="color: var(--ink)">
+                  <span class="text-[0.3em] font-semibold" style="color: var(--ink-faint)">
+                    {country.symbol}
                   </span>
+                  {formatFigure(primary.sell, country.locale, country.decimals)}
+                </p>
+                <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
+                  <Movement
+                    change={primary.change}
+                    changePct={primary.changePct}
+                    locale={country.locale}
+                    decimals={country.decimals}
+                  />
+                  <span class="figure-cell" style="color: var(--ink-faint)">
+                    compra {formatFigure(primary.buy, country.locale, country.decimals)} · venta{' '}
+                    {formatFigure(primary.sell, country.locale, country.decimals)}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div class="mt-6">
+                <p class="figure-row" style="color: var(--ink-faint)">
+                  <span aria-hidden="true">— —</span>
+                </p>
+                <p class="mt-3 max-w-note text-[0.9375rem] leading-relaxed" style="color: var(--ink-soft)">
+                  Ninguna fuente devolvió una cotización para {country.name} al generar esta página.
+                  No mostramos un valor anterior, porque un dato viejo presentado como actual es peor
+                  que ningún dato.
+                </p>
+              </div>
+            )
+          }
+
+          {
+            spread && (
+              <div class="mt-6 rounded-[3px] px-4 py-3.5" style="background-color: var(--paper-band)">
+                <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <span class="label" style="color: var(--ink-faint)">Brecha</span>
                   <span class="figure text-[1.0625rem] font-bold" style="color: var(--ink)">
                     {`${spread.value > 0 ? '+' : ''}${spread.value.toFixed(1).replace('.', ',')} %`}
                   </span>
-                  <span class="text-[0.875rem]" style="color: var(--ink-soft)">
-                    es lo que el {spread.label.toLowerCase()} se separa del oficial
-                  </span>
                 </div>
-              )
-            }
+                <p class="mt-1.5 text-[0.875rem] leading-relaxed" style="color: var(--ink-soft)">
+                  {spread.value >= 0
+                    ? `El ${spread.label.toLowerCase()} está por encima del oficial: conseguir dólares fuera del canal oficial cuesta más caro.`
+                    : `El ${spread.label.toLowerCase()} está por debajo del oficial, algo poco habitual: hoy sale más barato comprar fuera del canal oficial que al tipo de cambio publicado.`}
+                </p>
+              </div>
+            )
+          }
 
-            <p class="mt-7 max-w-note text-[1rem] leading-[1.7]" style="color: var(--ink-soft)">
-              {country.context}
-            </p>
-          </div>
-        </article>
+          <p class="mt-6 max-w-note text-[0.9375rem] leading-[1.7]" style="color: var(--ink-soft)">
+            {country.context}
+          </p>
+        </div>
+      </article>
 
-      <aside class="min-w-0 space-y-6 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-6">
+      <aside class="min-w-0 space-y-6 lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-5">
         {
           available ? (
-            <CurrencyCalculator
-              client:load
-              rates={rates}
-              currency={country.currency}
-              currencyName={country.currencyName}
-              symbol={country.symbol}
-              locale={country.locale}
-              decimals={country.decimals}
-              countryName={country.name}
-              primaryKey={primary.key}
-            />
+            <CurrencyCalculator rates={rates} country={country} primaryKey={primary.key} />
           ) : (
-            <div class="leaf-flat px-4 py-5 sm:px-5">
-              <p class="text-[0.9375rem] font-bold" style="color: var(--ink)">
-                Convertir
-              </p>
+            <div class="leaf-flat px-4 py-5">
+              <p class="text-[0.9375rem] font-bold" style="color: var(--ink)">Convertir</p>
               <p class="mt-2 text-[0.875rem] leading-relaxed" style="color: var(--ink-faint)">
                 La calculadora vuelve en cuanto haya una cotización que aplicar.
               </p>
@@ -245,20 +290,74 @@ if (available) {
           )
         }
 
-        <div class="hidden lg:block">
-          <AdSensePlaceholder slot="rectangle" />
-        </div>
+        <AdSensePlaceholder slot="rectangle" />
 
-        <section aria-labelledby="stub-notas" class="hidden lg:block">
-          <h2 id="stub-notas" class="rule-strong-top pt-4 text-[0.9375rem] font-bold" style="color: var(--ink)">
-            Para entender el cambio
-          </h2>
-          <ul class="mt-1">
+        <section aria-labelledby="atajos" class="leaf-flat px-4 py-4">
+          <SectionHeader
+            id="atajos"
+            title="Ir directo a"
+            hint="Las consultas más frecuentes, ya resueltas."
+          />
+          <ul class="mt-3 space-y-px">
+            {board.p2p.length > 1 && (
+              <li>
+                <a
+                  href={`/${country.code}/plataformas`}
+                  class="block border-t py-2.5 text-[0.875rem] font-semibold no-underline transition-opacity duration-150 hover:opacity-70"
+                  style="border-color: var(--rule); color: var(--ink-soft)"
+                >
+                  Dónde comprar más barato
+                </a>
+              </li>
+            )}
+            {series && (
+              <li>
+                <a
+                  href={`/${country.code}/historico`}
+                  class="block border-t py-2.5 text-[0.875rem] font-semibold no-underline transition-opacity duration-150 hover:opacity-70"
+                  style="border-color: var(--rule); color: var(--ink-soft)"
+                >
+                  Histórico día a día
+                </a>
+              </li>
+            )}
+            {featured.map((amount) => (
+              <li>
+                <a
+                  href={`/${country.code}/${forwardSlug(amount, country.currency)}`}
+                  class="block border-t py-2.5 text-[0.875rem] font-semibold no-underline transition-opacity duration-150 hover:opacity-70"
+                  style="border-color: var(--rule); color: var(--ink-soft)"
+                >
+                  {amount} dólares a {READABLE[country.currency]}
+                </a>
+              </li>
+            ))}
+            {country.hasParallel && (
+              <li>
+                <a
+                  href={`/${country.code}/dolar-paralelo`}
+                  class="block border-t py-2.5 text-[0.875rem] font-semibold no-underline transition-opacity duration-150 hover:opacity-70"
+                  style="border-color: var(--rule); color: var(--ink-soft)"
+                >
+                  Dólar paralelo en {country.name}
+                </a>
+              </li>
+            )}
+          </ul>
+        </section>
+
+        <section aria-labelledby="stub-notas" class="leaf-flat px-4 py-4">
+          <SectionHeader
+            id="stub-notas"
+            title="Para entender el cambio"
+            hint="Lecturas cortas sobre cómo funciona el mercado."
+          />
+          <ul class="mt-3 space-y-px">
             {notes.map((note) => (
               <li>
                 <a
                   href={`/notas/${note.id}`}
-                  class="block border-t py-3.5 text-[0.875rem] font-semibold leading-snug no-underline transition-colors duration-200 hover:text-[var(--deposit)]"
+                  class="block border-t py-2.5 text-[0.875rem] font-semibold leading-snug no-underline transition-opacity duration-150 hover:opacity-70"
                   style="border-color: var(--rule); color: var(--ink-soft)"
                 >
                   {note.data.titulo}
@@ -269,71 +368,174 @@ if (available) {
         </section>
       </aside>
 
-        <div class="lg:col-start-1 lg:row-start-2 min-w-0 space-y-8">
-        {series ? (
-          <HistoryChart series={series} country={country} />
-        ) : (
-          <section class="leaf-flat px-4 py-6 sm:px-6">
-            <h2 class="text-[1.0625rem] font-bold" style="color: var(--ink)">
-              El histórico de {country.name} lo estamos construyendo
-            </h2>
-            <p class="mt-2.5 max-w-note text-[0.9375rem] leading-relaxed" style="color: var(--ink-soft)">
-              Ninguna institución publica una serie histórica para este país, así que guardamos
-              nuestra propia lectura cada vez que el sitio se actualiza. El gráfico aparece aquí en
-              cuanto haya suficientes registros.
-            </p>
-          </section>
-        )}
+      <div class="min-w-0 space-y-7 lg:col-start-1 lg:row-start-2">
+        <P2PComparator rows={board.p2p} summary={board.p2pSummary} country={country} />
+
+        {
+          series ? (
+            <HistoryChart series={series} country={country} />
+          ) : (
+            <section class="leaf-flat px-4 py-5 sm:px-5">
+              <SectionHeader
+                title={`El histórico de ${country.name} lo estamos construyendo`}
+                hint="Ninguna institución publica una serie histórica para este país, así que guardamos nuestra propia lectura cada vez que el sitio se actualiza. El gráfico aparece aquí en cuanto haya suficientes registros."
+              />
+            </section>
+          )
+        }
 
         {available && <RateLedger rates={rates} country={country} primaryKey={primary.key} />}
 
-        <div class="lg:hidden">
-          <AdSensePlaceholder slot="horizontal" />
-        </div>
+        <AdSensePlaceholder slot="horizontal" />
+
+        {
+          variantLinks.length > 1 && (
+            <section aria-labelledby="variantes" class="rule-strong-top pt-5">
+              <SectionHeader
+                id="variantes"
+                title={`Cada tipo de dólar en ${country.name}, por separado`}
+                hint="Qué es, cuánto vale y en qué se diferencia del oficial."
+              />
+              <ul class="mt-3 flex flex-wrap gap-2">
+                {variantLinks.map((item) => (
+                  <li>
+                    <a
+                      href={`/${country.code}/${item.slug}`}
+                      class="inline-block rounded-[2px] border px-3 py-1.5 text-[0.8125rem] font-semibold no-underline transition-opacity duration-150 hover:opacity-70"
+                      style="border-color: var(--rule); color: var(--ink-soft)"
+                    >
+                      {item.rate.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )
+        }
+
+        {
+          available && (
+            <section aria-labelledby="montos" class="rule-strong-top pt-5">
+              <SectionHeader
+                id="montos"
+                title={`Convertir dólares y ${READABLE[country.currency]}`}
+                hint="Cada monto tiene su propia página con el cálculo hecho y el desglose por cotización."
+              />
+
+              <p class="mt-4 label" style="color: var(--ink-faint)">
+                Dólares a {READABLE[country.currency]}
+              </p>
+              <ul class="mt-2 flex flex-wrap gap-2">
+                {AMOUNTS.map((amount) => (
+                  <li>
+                    <a
+                      href={`/${country.code}/${forwardSlug(amount, country.currency)}`}
+                      class="inline-block rounded-[2px] border px-2.5 py-1.5 figure text-[0.8125rem] font-semibold no-underline transition-opacity duration-150 hover:opacity-70"
+                      style="border-color: var(--rule); color: var(--ink-soft)"
+                    >
+                      US$ {amount}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+
+              <p class="mt-5 label" style="color: var(--ink-faint)">
+                {READABLE[country.currency]} a dólares
+              </p>
+              <ul class="mt-2 flex flex-wrap gap-2">
+                {AMOUNTS.map((amount) => (
+                  <li>
+                    <a
+                      href={`/${country.code}/${reverseSlug(amount, country.currency)}`}
+                      class="inline-block rounded-[2px] border px-2.5 py-1.5 figure text-[0.8125rem] font-semibold no-underline transition-opacity duration-150 hover:opacity-70"
+                      style="border-color: var(--rule); color: var(--ink-soft)"
+                    >
+                      {country.symbol} {amount}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+
+              {crossLinks.length > 0 && (
+                <Fragment>
+                  <p class="mt-5 label" style="color: var(--ink-faint)">
+                    Otras monedas
+                  </p>
+                  <ul class="mt-2 flex flex-wrap gap-2">
+                    {crossLinks.map((item) => (
+                      <li>
+                        <a
+                          href={item.href}
+                          class="inline-block rounded-[2px] border px-3 py-1.5 text-[0.8125rem] font-semibold no-underline transition-opacity duration-150 hover:opacity-70"
+                          style="border-color: var(--rule); color: var(--ink-soft)"
+                        >
+                          {item.info.name}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </Fragment>
+              )}
+            </section>
+          )
+        }
+
+        {
+          cities.length > 0 && available && (
+            <section aria-labelledby="ciudades" class="rule-strong-top pt-5">
+              <SectionHeader
+                id="ciudades"
+                title={`¿El precio es el mismo en todo ${country.name}?`}
+                hint="La respuesta corta: sí, salvo el margen de cada mostrador."
+              />
+              <p class="mt-3 max-w-note text-[0.9375rem] leading-relaxed" style="color: var(--ink-soft)">
+                La referencia de esta página es la misma para {cities.join(', ')} y el resto del país,
+                porque se forma en plataformas digitales que no distinguen ciudad. Lo que sí cambia de
+                un lugar a otro es el margen que cobra cada casa de cambio de mostrador: suele ser más
+                ancho fuera de {cities[0]} y en zonas de frontera. Por eso conviene comparar el precio
+                de referencia con el que te ofrecen antes de cerrar la operación.
+              </p>
+            </section>
+          )
+        }
 
         <CountryFacts profile={profile} country={country} />
 
         <section aria-labelledby="preguntas" class="rule-strong-top pt-5">
-          <h2 id="preguntas" class="text-[1.0625rem] font-bold" style="color: var(--ink)">
-            Preguntas frecuentes
-          </h2>
-          <div class="mt-3 max-w-note">
+          <SectionHeader
+            id="preguntas"
+            title="Preguntas frecuentes"
+            hint={`Actualizado el ${formatLongDay(isoDate(measuredAt) || new Date().toISOString())}.`}
+          />
+          <dl class="mt-3 max-w-note">
             {
               faq.map((item) => (
-                <details class="group border-t py-4" style="border-color: var(--rule)">
-                  <summary
-                    class="flex cursor-pointer list-none items-start justify-between gap-4 text-[0.9375rem] font-semibold leading-snug"
-                    style="color: var(--ink)"
-                  >
+                <div class="border-t py-4" style="border-color: var(--rule)">
+                  <dt class="text-[0.9375rem] font-bold leading-snug" style="color: var(--ink)">
                     {item.q}
-                    <span
-                      class="mt-0.5 shrink-0 transition-transform duration-300 ease-settle group-open:rotate-45"
-                      style="color: var(--ink-faint)"
-                      aria-hidden="true"
-                    >
-                      <svg width="15" height="15" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-                        <path d="M7 1.5v11M1.5 7h11" />
-                      </svg>
-                    </span>
-                  </summary>
-                  <p class="mt-2.5 text-[0.9375rem] leading-relaxed" style="color: var(--ink-soft)">
+                  </dt>
+                  <dd class="mt-2 text-[0.9375rem] leading-relaxed" style="color: var(--ink-soft)">
                     {item.a}
-                  </p>
-                </details>
+                  </dd>
+                </div>
               ))
             }
-          </div>
+          </dl>
         </section>
 
         <section aria-labelledby="otros" class="leaf-flat overflow-hidden">
-          <h2 id="otros" class="px-4 pt-5 text-[1.0625rem] font-bold sm:px-6" style="color: var(--ink)">
-            El dólar en otros países
-          </h2>
-          <div class="mt-3 stagger divide-y" style="border-color: var(--rule)">
-            {others.map((entry, index) => <CountryCard board={entry} index={index} />)}
+          <div class="px-4 pt-5 sm:px-5">
+            <SectionHeader
+              id="otros"
+              title="El dólar en otros países"
+              hint="El mismo tablero para el resto de la región."
+            />
+          </div>
+          <div class="mt-3 border-t" style="border-color: var(--rule)">
+            {others.map((entry) => <CountryCard board={entry} />)}
           </div>
         </section>
-        </div>
+      </div>
     </div>
   </div>
 </BaseLayout>

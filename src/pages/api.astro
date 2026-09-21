@@ -1,0 +1,75 @@
+---
+import TextPage from '../layouts/TextPage.astro';
+import { countryList } from '../utils/countries.js';
+import { SITE } from '../utils/site.js';
+import { breadcrumb, webPage, organization } from '../utils/seo.js';
+
+const canonical = '/api';
+const title = 'API pública de cotizaciones del dólar | Cambio Claro';
+const description =
+  'JSON abierto con el dólar oficial y paralelo de ocho países de Latinoamérica, plataformas P2P e histórico. Sin clave, CORS abierto, CC BY 4.0.';
+
+const countries = countryList();
+
+const jsonLd = [
+  webPage(title, description, canonical, new Date().toISOString()),
+  organization,
+  breadcrumb([
+    { name: 'Cambio Claro', path: '/' },
+    { name: 'API', path: canonical }
+  ])
+];
+---
+
+<TextPage
+  title={title}
+  description={description}
+  canonical={canonical}
+  heading="API pública"
+  lead="Todas las cotizaciones en JSON, sin clave, con CORS abierto y licencia CC BY 4.0. Se regenera cada veinte minutos."
+  jsonLd={jsonLd}
+>
+  <h2>Endpoints</h2>
+  <ul>
+    <li><a href="/api/v1/rates.json"><code>/api/v1/rates.json</code></a> — los ocho países en un solo archivo</li>
+    {countries.map((country) => (
+      <li>
+        <a href={`/api/v1/${country.code}/rates.json`}>
+          <code>/api/v1/{country.code}/rates.json</code>
+        </a> — {country.name}: cotizaciones, plataformas P2P e histórico propio
+      </li>
+    ))}
+    <li>
+      <a href="/api/v1/bo/resumen.txt"><code>/api/v1/{'{país}'}/resumen.txt</code></a> — la misma
+      información en texto plano, pensada para asistentes y lectores automáticos
+    </li>
+  </ul>
+
+  <h2>Qué devuelve</h2>
+  <p>
+    Cada país trae <code>rates</code> (todas las cotizaciones con compra, venta, cierre anterior,
+    hora de medición y fuente), <code>platforms</code> (las plataformas P2P ordenadas por precio),
+    <code>spread</code> (la brecha entre oficial y paralelo) y <code>history</code> (nuestra serie
+    propia, día a día).
+  </p>
+
+  <h2>Ejemplo</h2>
+  <pre
+    class="overflow-x-auto rounded-[3px] px-3 py-3 text-[0.8125rem]"
+    style="background-color: var(--paper-band); color: var(--ink-soft); font-family: theme('fontFamily.mono')"
+  >{`const r = await fetch('${SITE}/api/v1/bo/rates.json');
+const { rates, platforms, spread } = await r.json();
+console.log(rates[0].label, rates[0].sell);`}</pre>
+
+  <h2>Límites y licencia</h2>
+  <p>
+    No hay clave ni cuota. Los archivos son estáticos y se regeneran cada veinte minutos, así que
+    pedirlos más seguido no da datos más frescos. Licencia CC BY 4.0: úsalos como quieras, incluso
+    comercialmente, citando <strong>Cambio Claro</strong> con un enlace.
+  </p>
+  <p>
+    Si lo que quieres es mostrar la cotización sin escribir código, hay un
+    <a href="/integraciones">widget de una línea</a>. Y si quieres saber de dónde sale cada cifra,
+    está la <a href="/metodologia">metodología</a>.
+  </p>
+</TextPage>

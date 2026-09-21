@@ -9,13 +9,18 @@ const {
   description,
   canonical,
   activeCountry = null,
+  lang = 'es',
+  locale = 'es_419',
   jsonLd = [],
+  image,
+  type,
+  publishedTime,
   modifiedTime
 } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="es">
+<html lang={lang}>
   <head>
     <script is:inline>
       (function () {
@@ -35,15 +40,19 @@ const {
       title={title}
       description={description}
       canonical={canonical}
+      locale={locale}
+      type={type}
+      image={image}
       jsonLd={jsonLd}
+      publishedTime={publishedTime}
       modifiedTime={modifiedTime}
     />
   </head>
   <body class="min-h-screen">
     <a
       href="#contenido"
-      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:px-4 focus:py-2 focus:text-[0.875rem] focus:font-semibold"
-      style="background-color: var(--cover); color: var(--cover-ink)"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-[2px] focus:px-4 focus:py-2 focus:text-[0.875rem] focus:font-semibold"
+      style="background-color: var(--ink); color: var(--paper-leaf)"
     >
       Ir al contenido
     </a>

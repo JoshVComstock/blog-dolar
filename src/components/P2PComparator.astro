@@ -1,0 +1,169 @@
+---
+import SectionHeader from './SectionHeader.astro';
+import { formatFigure, formatStamp } from '../utils/format.js';
+
+const { rows = [], summary, country } = Astro.props;
+const { locale, decimals, symbol, currency, timezone } = country;
+
+const span = summary && summary.gap > 0 ? summary.gap : 0;
+const width = (value) => (span ? ((value - summary.min) / span) * 100 : 0);
+const SEED = 100;
+---
+
+{
+  rows.length > 1 && summary && (
+    <section aria-labelledby="p2p" class="leaf-flat overflow-hidden" data-p2p data-locale={locale} data-decimals={decimals}>
+      <div class="px-4 pt-5 sm:px-5">
+        <SectionHeader
+          id="p2p"
+          title="Dónde sale más barato el dólar"
+          meta={`${summary.count} plataformas`}
+          hint="Precio de venta del USDT en plataformas de intercambio entre personas, ordenado de más barato a más caro. Es la referencia que usa el mercado paralelo."
+        />
+      </div>
+
+      <div class="mt-4 grid grid-cols-2 gap-px sm:grid-cols-4" style="background-color: var(--rule)">
+        <div class="px-4 py-3" style="background-color: var(--paper-leaf)">
+          <p class="label" style="color: var(--ink-faint)">Más barato</p>
+          <p class="mt-1.5 figure-cell font-bold" style="color: var(--ink)">
+            {symbol} {formatFigure(summary.min, locale, decimals)}
+          </p>
+          <p class="mt-1 stamp" style="color: var(--ink-faint)">{summary.cheapest.label}</p>
+        </div>
+        <div class="px-4 py-3" style="background-color: var(--paper-leaf)">
+          <p class="label" style="color: var(--ink-faint)">Promedio</p>
+          <p class="mt-1.5 figure-cell font-bold" style="color: var(--ink)">
+            {symbol} {formatFigure(summary.averageSell, locale, decimals)}
+          </p>
+          <p class="mt-1 stamp" style="color: var(--ink-faint)">entre las {summary.count}</p>
+        </div>
+        <div class="px-4 py-3" style="background-color: var(--paper-leaf)">
+          <p class="label" style="color: var(--ink-faint)">Más caro</p>
+          <p class="mt-1.5 figure-cell font-bold" style="color: var(--ink)">
+            {symbol} {formatFigure(summary.max, locale, decimals)}
+          </p>
+          <p class="mt-1 stamp" style="color: var(--ink-faint)">{summary.dearest.label}</p>
+        </div>
+        <div class="px-4 py-3" style="background-color: var(--paper-leaf)">
+          <p class="label" style="color: var(--ink-faint)">Diferencia</p>
+          <p class="mt-1.5 figure-cell font-bold" style="color: var(--ink)">
+            {formatFigure(summary.gap, locale, decimals)}
+          </p>
+          <p class="mt-1 stamp" style="color: var(--ink-faint)">
+            {summary.gapPct !== null ? `${summary.gapPct.toFixed(1).replace('.', ',')} %` : '—'} de punta a punta
+          </p>
+        </div>
+      </div>
+
+      <ul class="border-t" style="border-color: var(--rule)">
+        {rows.map((row, index) => (
+          <li
+            class="border-b px-4 py-3.5 sm:px-5"
+            style="border-color: var(--rule)"
+            data-p2p-row
+            data-sell={row.sell}
+            data-buy={row.buy ?? ''}
+          >
+            <div class="flex flex-wrap items-baseline justify-between gap-x-5 gap-y-2">
+              <span class="flex min-w-0 items-baseline gap-2">
+                <span class="text-[0.9375rem] font-semibold" style="color: var(--ink)">
+                  {row.label}
+                </span>
+                {index === 0 && <span class="label invert-mark">más barato</span>}
+                {row.asset === 'USDC' && (
+                  <span class="label outline-mark">USDC</span>
+                )}
+              </span>
+
+              <span class="flex items-baseline gap-x-5 gap-y-1">
+                <span class="text-right">
+                  <span class="block label" style="color: var(--ink-faint)">Venta</span>
+                  <span class="mt-1 block figure-cell font-bold" style="color: var(--ink)">
+                    {formatFigure(row.sell, locale, decimals)}
+                  </span>
+                </span>
+                <span class="text-right">
+                  <span class="block label" style="color: var(--ink-faint)">Compra</span>
+                  <span class="mt-1 block figure-cell" style="color: var(--ink-soft)">
+                    {formatFigure(row.buy, locale, decimals)}
+                  </span>
+                </span>
+                <span class="text-right">
+                  <span class="block label" style="color: var(--ink-faint)">
+                    <span data-p2p-head>Con 100 USD</span>
+                  </span>
+                  <span
+                    class="mt-1 block figure-cell font-bold"
+                    style="color: var(--ink)"
+                    data-p2p-out
+                  >
+                    {formatFigure(row.buy ? SEED * row.buy : null, locale, decimals)}
+                  </span>
+                </span>
+              </span>
+            </div>
+
+            <div class="meter mt-3" role="presentation">
+              <span style={`width: ${Math.max(width(row.sell), 2).toFixed(2)}%`}></span>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <p class="px-4 py-4 text-[0.875rem] leading-relaxed sm:px-5" style="color: var(--ink-faint)">
+        La barra muestra qué tan lejos está cada plataforma del precio más barato de la lista.
+        <strong style="color: var(--ink-soft)">Venta</strong> es lo que te cobran por un dólar y
+        <strong style="color: var(--ink-soft)">compra</strong> lo que te pagan por el tuyo.
+        Datos de criptoya.com, medidos {formatStamp(summary.updatedAt, timezone)}. Cubrimos las
+        plataformas que publican su precio de forma abierta; las que no lo hacen, como Airtm o
+        Takenos, no aparecen aquí porque no podríamos verificar la cifra.
+      </p>
+    </section>
+  )
+}
+
+<script>
+  const block = document.querySelector('[data-p2p]');
+
+  if (block) {
+    const locale = block.dataset.locale || 'es';
+    const decimals = Number(block.dataset.decimals) || 2;
+    const heads = Array.from(block.querySelectorAll('[data-p2p-head]'));
+    const rows = Array.from(block.querySelectorAll('[data-p2p-row]'));
+
+    window.addEventListener('cc:amount', (event) => {
+      const detail = event.detail || {};
+      const amount = Number(detail.amount);
+      if (!Number.isFinite(amount)) return;
+
+      const holdingUsd = detail.holdingUsd !== false;
+      const digits = holdingUsd ? decimals : 2;
+      const label =
+        'Con ' +
+        new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(amount) +
+        ' ' +
+        (holdingUsd ? 'USD' : detail.currency || '');
+
+      heads.forEach((head) => {
+        head.textContent = label;
+      });
+
+      rows.forEach((row) => {
+        const buy = Number(row.dataset.buy);
+        const sell = Number(row.dataset.sell);
+        const applied = holdingUsd ? buy || sell : sell || buy;
+        const out = row.querySelector('[data-p2p-out]');
+        if (!out) return;
+        if (!Number.isFinite(applied) || applied === 0) {
+          out.textContent = '—';
+          return;
+        }
+        const value = holdingUsd ? amount * applied : amount / applied;
+        out.textContent = new Intl.NumberFormat(locale, {
+          minimumFractionDigits: digits,
+          maximumFractionDigits: digits
+        }).format(value);
+      });
+    });
+  }
+</script>

@@ -1,6 +1,9 @@
 node_modules/
 dist/
 .astro/
+.vercel/
+.env
+.env.local
 .impeccable/config.local.json
 .impeccable/review/
 .DS_Store

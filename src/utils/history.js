@@ -4,24 +4,27 @@ const store = raw && raw.series ? raw.series : {};
 
 export const seriesKey = (code, variantKey) => code + ':' + variantKey;
 
-export const readOwnSeries = (code, variantKey) => {
-  const points = store[seriesKey(code, variantKey)];
-  return {
-    label: 'Registro propio',
-    points: Array.isArray(points)
-      ? points
-          .filter((point) => point && point.d && Number.isFinite(point.v))
-          .map((point) => ({ date: point.d, value: point.v }))
-      : []
-  };
+const points = (code, variantKey) => {
+  const list = store[seriesKey(code, variantKey)];
+  return Array.isArray(list) ? list.filter((p) => p && p.d && Number.isFinite(p.v)) : [];
 };
 
-export const ownSeriesLength = (code, variantKey) => readOwnSeries(code, variantKey).points.length;
+export const readOwnSeries = (code, variantKey) => ({
+  label: 'Registro propio',
+  points: points(code, variantKey).map((p) => ({ date: p.d, value: p.v }))
+});
+
+export const previousValue = (code, variantKey, today) => {
+  const earlier = points(code, variantKey).filter((p) => p.d < today);
+  return earlier.length ? earlier[earlier.length - 1].v : null;
+};
+
+export const ownSeriesLength = (code, variantKey) => points(code, variantKey).length;
 
 export const firstRecordedDate = () => {
   const dates = Object.values(store)
     .flat()
-    .map((point) => point && point.d)
+    .map((p) => p && p.d)
     .filter(Boolean)
     .sort();
   return dates.length ? dates[0] : null;
