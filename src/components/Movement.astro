@@ -1,7 +1,14 @@
 ---
-import { formatDelta, formatPercent, trendWord } from '../utils/format.js';
+import { formatDelta, formatPercent, formatDay, trendWord } from '../utils/format.js';
 
-const { change = null, changePct = null, locale = 'es', decimals = 2, size = 'md' } = Astro.props;
+const {
+  change = null,
+  changePct = null,
+  since = null,
+  locale = 'es',
+  decimals = 2,
+  size = 'md'
+} = Astro.props;
 
 const hasChange = Number.isFinite(change);
 const rising = hasChange && change > 0;
@@ -9,20 +16,28 @@ const flat = hasChange && change === 0;
 const dir = flat ? 'flat' : rising ? 'up' : 'down';
 const scale = size === 'sm' ? 'text-[0.75rem] px-1.5 py-[3px] gap-1' : 'text-[0.8125rem] px-2 py-1 gap-1.5';
 const arrow = rising ? 'M8 3.4 13 9H9.2v4.6H6.8V9H3z' : 'M8 13.6 3 8h3.8V3.4h2.4V8H13z';
+const reference = since ? `desde el ${formatDay(since)}` : 'frente al cierre anterior';
 ---
 
 {
   hasChange ? (
-    <span class={`movement inline-flex items-center rounded-[2px] ${scale}`} data-dir={dir}>
-      {flat ? (
-        <span aria-hidden="true">=</span>
-      ) : (
-        <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-          <path d={arrow} />
-        </svg>
+    <span class="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
+      <span class={`movement inline-flex items-center rounded-[2px] ${scale}`} data-dir={dir}>
+        {flat ? (
+          <span aria-hidden="true">=</span>
+        ) : (
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d={arrow} />
+          </svg>
+        )}
+        <span>{formatPercent(changePct, locale) || formatDelta(change, locale, decimals)}</span>
+        <span class="sr-only">{trendWord(change)} {reference}</span>
+      </span>
+      {since && (
+        <span class="stamp" style="color: var(--ink-faint)">
+          {reference}
+        </span>
       )}
-      <span>{formatPercent(changePct, locale) || formatDelta(change, locale, decimals)}</span>
-      <span class="sr-only">{trendWord(change)} frente al cierre anterior</span>
     </span>
   ) : (
     <span class="stamp" style="color: var(--ink-faint)">

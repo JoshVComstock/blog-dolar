@@ -14,9 +14,17 @@ export const readOwnSeries = (code, variantKey) => ({
   points: points(code, variantKey).map((p) => ({ date: p.d, value: p.v }))
 });
 
-export const previousValue = (code, variantKey, today) => {
+export const previousPoint = (code, variantKey, today) => {
   const earlier = points(code, variantKey).filter((p) => p.d < today);
-  return earlier.length ? earlier[earlier.length - 1].v : null;
+  if (!earlier.length) return null;
+  const last = earlier[earlier.length - 1];
+  const days = Math.round((Date.parse(today) - Date.parse(last.d)) / 86400000);
+  return { value: last.v, date: last.d, days };
+};
+
+export const previousValue = (code, variantKey, today) => {
+  const point = previousPoint(code, variantKey, today);
+  return point ? point.value : null;
 };
 
 export const ownSeriesLength = (code, variantKey) => points(code, variantKey).length;

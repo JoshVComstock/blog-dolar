@@ -204,6 +204,7 @@ if (available) jsonLd.push(exchangeRate(country, primary, canonical));
                       <Movement
                         change={rate.change}
                         changePct={rate.changePct}
+                        since={rate.previousDate}
                         locale={country.locale}
                         decimals={country.decimals}
                       />
@@ -229,6 +230,7 @@ if (available) jsonLd.push(exchangeRate(country, primary, canonical));
                   <Movement
                     change={primary.change}
                     changePct={primary.changePct}
+                        since={primary.previousDate}
                     locale={country.locale}
                     decimals={country.decimals}
                   />

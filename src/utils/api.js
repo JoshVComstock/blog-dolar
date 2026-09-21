@@ -1,5 +1,5 @@
 import { COUNTRIES, COUNTRY_CODES } from './countries.js';
-import { readOwnSeries, previousValue } from './history.js';
+import { readOwnSeries, previousPoint } from './history.js';
 import { fetchP2P, p2pSummary } from './p2p.js';
 import { fetchUsdRates } from './fx.js';
 
@@ -81,13 +81,25 @@ const toNumber = (value) => {
 
 const today = () => new Date().toISOString().slice(0, 10);
 
+const FRESH_DAYS = 3;
+
+const comparison = (entry, code, key, sell) => {
+  const closing = toNumber(entry.ultimoCierre);
+  if (closing !== null) return { value: closing, days: 1, since: null };
+
+  const point = previousPoint(code, key, today());
+  if (!point) return null;
+  return { value: point.value, days: point.days, since: point.days > FRESH_DAYS ? point.date : null };
+};
+
 const normalizeEntry = (entry, code) => {
   const key = String(entry.casa || entry.fuente || 'mercado').toLowerCase();
   const sell = toNumber(entry.venta) ?? toNumber(entry.promedio) ?? toNumber(entry.fix);
   if (sell === null) return null;
 
   const buy = toNumber(entry.compra) ?? toNumber(entry.promedio) ?? sell;
-  const previous = toNumber(entry.ultimoCierre) ?? previousValue(code, key, today());
+  const before = comparison(entry, code, key, sell);
+  const previous = before ? before.value : null;
 
   return {
     key,
@@ -96,6 +108,8 @@ const normalizeEntry = (entry, code) => {
     buy,
     sell,
     previous,
+    previousDate: before ? before.since : null,
+    previousDays: before ? before.days : null,
     change: previous !== null ? sell - previous : null,
     changePct: previous !== null && previous !== 0 ? ((sell - previous) / previous) * 100 : null,
     updatedAt: entry.fechaActualizacion || null,
@@ -109,7 +123,8 @@ const fromFallbackFx = async (country) => {
   const rate = payload && payload.rates ? toNumber(payload.rates[country.currency]) : null;
   if (rate === null) return [];
 
-  const previous = previousValue(country.code, 'referencia', today());
+  const point = previousPoint(country.code, 'referencia', today());
+  const previous = point ? point.value : null;
 
   return [
     {
@@ -119,6 +134,8 @@ const fromFallbackFx = async (country) => {
       buy: rate,
       sell: rate,
       previous,
+      previousDate: point && point.days > 3 ? point.date : null,
+      previousDays: point ? point.days : null,
       change: previous !== null ? rate - previous : null,
       changePct: previous !== null && previous !== 0 ? ((rate - previous) / previous) * 100 : null,
       updatedAt: payload.time_last_update_utc

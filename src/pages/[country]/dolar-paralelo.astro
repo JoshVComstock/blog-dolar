@@ -123,6 +123,7 @@ if (parallel) jsonLd.push(exchangeRate(country, parallel, canonical));
                     <Movement
                       change={parallel.change}
                       changePct={parallel.changePct}
+                        since={parallel.previousDate}
                       locale={locale}
                       decimals={decimals}
                     />

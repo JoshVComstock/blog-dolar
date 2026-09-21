@@ -50,6 +50,7 @@ const showsPair = Boolean(country.hasParallel && official && primary && official
             <Movement
               change={primary.change}
               changePct={primary.changePct}
+                        since={primary.previousDate}
               locale={locale}
               decimals={decimals}
               size="sm"
