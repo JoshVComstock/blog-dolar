@@ -115,7 +115,7 @@ const recordP2P = async (series, today) => {
   let written = 0;
 
   for (const [code, currency] of Object.entries(CURRENCIES)) {
-    const payload = await fetchJson(P2P + currency + '/1');
+    const payload = await fetchJson(P2P + currency + '/100');
     if (!payload || typeof payload !== 'object' || Array.isArray(payload)) continue;
 
     const prices = Object.values(payload)

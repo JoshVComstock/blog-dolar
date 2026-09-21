@@ -22,6 +22,8 @@
     --rule-faint: rgba(21, 21, 20, 0.05);
     --accent: #151514;
     --accent-ink: #fafaf8;
+    --live: #0b7a46;
+    --live-wash: rgba(11, 122, 70, 0.08);
     --deposit: #151514;
     --deposit-wash: rgba(21, 21, 20, 0.06);
     --withdraw: #151514;
@@ -47,6 +49,8 @@
     --rule-faint: rgba(244, 244, 241, 0.06);
     --accent: #f4f4f1;
     --accent-ink: #0d0d0c;
+    --live: #58c98a;
+    --live-wash: rgba(88, 201, 138, 0.12);
     --deposit: #f4f4f1;
     --deposit-wash: rgba(244, 244, 241, 0.1);
     --withdraw: #f4f4f1;

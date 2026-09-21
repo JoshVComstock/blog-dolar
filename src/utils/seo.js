@@ -103,16 +103,16 @@ export const website = (description) => ({
 });
 
 export const answerSentence = (country, primary, official, parallel, spread) => {
-  const price = (rate) => `${country.symbol} ${formatFigure(rate.sell, country.locale, country.decimals)}`;
+  const amount = (value) => `${country.symbol} ${formatFigure(value, country.locale, country.decimals)}`;
 
   if (official && parallel && spread) {
     const side = spread.value >= 0 ? 'por encima' : 'por debajo';
     const gap = Math.abs(spread.value).toFixed(1).replace('.', ',');
-    return `El dólar ${parallel.label.toLowerCase()} en ${country.name} está en ${price(parallel)} para la venta, un ${gap} % ${side} del oficial de ${price(official)}.`;
+    return `En el mercado ${parallel.label.toLowerCase()} de ${country.name} te pagan ${amount(parallel.buy)} por cada dólar y te cobran ${amount(parallel.sell)}, un ${gap} % ${side} del oficial de ${amount(official.sell)}.`;
   }
 
   if (primary) {
-    return `El dólar ${primary.label.toLowerCase()} en ${country.name} está en ${price(primary)} para la venta y ${country.symbol} ${formatFigure(primary.buy, country.locale, country.decimals)} para la compra.`;
+    return `En ${country.name} te pagan ${amount(primary.buy)} por cada dólar y te cobran ${amount(primary.sell)}, al cambio ${primary.label.toLowerCase()}.`;
   }
 
   return `Ahora mismo no tenemos una cotización del dólar para ${country.name}.`;
@@ -120,7 +120,7 @@ export const answerSentence = (country, primary, official, parallel, spread) => 
 
 export const priceTitle = (country, official, parallel, primary) => {
   const money = (rate) =>
-    `${country.symbol} ${formatFigure(rate.sell, country.locale, country.decimals)}`;
+    `${country.symbol} ${formatFigure(rate.buy ?? rate.sell, country.locale, country.decimals)}`;
 
   if (official && parallel) {
     return `Dólar hoy en ${country.name}: ${money(parallel)} paralelo · ${money(official)} oficial`;

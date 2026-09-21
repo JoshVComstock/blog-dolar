@@ -1,6 +1,6 @@
 import { COUNTRIES, COUNTRY_CODES } from './countries.js';
 import { readOwnSeries, previousPoint } from './history.js';
-import { fetchP2P, p2pSummary } from './p2p.js';
+import { fetchP2P, p2pSummary, p2pReference } from './p2p.js';
 import { fetchUsdRates } from './fx.js';
 
 const FX_FALLBACK = 'https://open.er-api.com/v6/latest/USD';
@@ -293,6 +293,35 @@ const computeSpread = (rates) => {
   };
 };
 
+const P2P_DERIVED = new Set(['binance', 'cripto', 'paralelo']);
+
+const withP2PReference = (rates, reference, code) => {
+  const target = rates.find((rate) => P2P_DERIVED.has(rate.key));
+  if (!target) return rates;
+
+  const before = previousPoint(code, 'p2p', today());
+  const previous = before ? before.value : target.previous;
+
+  const replacement = {
+    ...target,
+    buy: reference.buy,
+    sell: reference.sell,
+    previous,
+    previousDate: before && before.days > 3 ? before.date : null,
+    previousDays: before ? before.days : null,
+    change: previous !== null && previous !== undefined ? reference.sell - previous : null,
+    changePct:
+      previous !== null && previous !== undefined && previous !== 0
+        ? ((reference.sell - previous) / previous) * 100
+        : null,
+    updatedAt: reference.updatedAt || target.updatedAt,
+    source: 'criptoya.com',
+    platforms: reference.count
+  };
+
+  return rates.map((rate) => (rate.key === target.key ? replacement : rate));
+};
+
 export const fetchBoard = async (code, options) => {
   const country = COUNTRIES[code];
   if (!country) return null;
@@ -302,13 +331,16 @@ export const fetchBoard = async (code, options) => {
   const wantsP2P = settings.p2p !== false;
   const wantsFx = settings.fx !== false;
 
-  const [rates, p2pRows, fx] = await Promise.all([
+  const [baseRates, p2pRows, fx] = await Promise.all([
     fetchRates(code),
     wantsP2P
       ? withMemo('p2p-' + code, () => fetchP2P(country.currency, fetchJson))
       : Promise.resolve([]),
     wantsFx ? withMemo('fx-cross', () => fetchUsdRates(fetchJson)) : Promise.resolve(null)
   ]);
+
+  const reference = wantsP2P ? p2pReference(p2pRows) : null;
+  const rates = reference ? withP2PReference(baseRates, reference, code) : baseRates;
 
   const primary = pickPrimary(code, rates);
   const stamps = rates.map((rate) => rate.updatedAt).filter(Boolean).sort();
